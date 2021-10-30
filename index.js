@@ -4,7 +4,6 @@ var _util = require("./util");
 
 var _assetsToImportFile = require("./assetsToImportFile");
 
-/* eslint-disable */
 var fs = require("fs");
 
 var path = require("path");
@@ -50,7 +49,7 @@ if (mode === SIMPLE_MODE) {
   (0, _util.msg)("eima.json 파일을 찾을 수 없거나 읽을 수 없습니다. 심플모드로 동작합니다.");
   (0, _assetsToImportFile.assetsToImportFile)(assetDir, outPath);
 } else if (mode === CONFIG_MODE) {
-  config.paths.map(function (_ref) {
+  config.paths.forEach(function (_ref) {
     var asset = _ref.asset,
         out = _ref.out,
         vName = _ref.vName;

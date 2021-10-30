@@ -1,12 +1,14 @@
 {
-  "name": "eima-js",
-  "version": "1.0.0",
+  "name": "eima",
+  "version": "1.0.8",
   "description": "Easy to Import Multiple Assets",
   "scripts": {
     "build": "babel src --out-dir .",
-    "test": "node src/index.js assets .",
-    "test2": "node ./index.js assets",
-    "watch": "nodemon --watch src --exec \"yarn build && yarn test2\""
+    "test": "node ./index.js assets",
+    "watch": "nodemon --watch src --exec \"yarn build && yarn test\""
+  },
+  "bin": {
+    "eima": "bin/index.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.16.0",
@@ -25,7 +27,7 @@
     "asset",
     "image"
   ],
-  "main": "index.js",
+  "main": "./index.js",
   "devDependencies": {
     "@babel/cli": "^7.13.16",
     "@babel/core": "^7.13.16",

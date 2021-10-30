@@ -91,12 +91,20 @@ function _updateAssetsFile() {
 }
 
 function assetsToImportFile(dir, outPath, vName) {
+  if (!dir) {
+    return (0, _util.msg)("asset 경로를 확인해주세요 asset:", dir);
+  }
+
+  if (!outPath) {
+    return (0, _util.msg)("out 경로를 확인해주세요 outPath:", outPath);
+  }
+
   var variableName = vName || "ASSETS";
   updateAssetsFile(dir, outPath, variableName).then(function () {
     fs.watch(dir, {
       recursive: true
     }, function (eventType, fileName) {
-      (0, _util.msg)(eventType, fileName);
+      (0, _util.msg)(eventType, fileName || "알 수 없음");
       updateAssetsFile(dir, outPath, variableName)["catch"](function (e) {
         return console.error(e);
       });
