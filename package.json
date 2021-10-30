@@ -1,0 +1,37 @@
+{
+  "name": "eima-js",
+  "version": "1.0.0",
+  "description": "Easy to Import Multiple Assets",
+  "scripts": {
+    "build": "babel src --out-dir .",
+    "test": "node src/index.js assets .",
+    "test2": "node ./index.js assets",
+    "watch": "nodemon --watch src --exec \"yarn build && yarn test2\""
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.16.0",
+    "path": "^0.12.7",
+    "util": "^0.12.4"
+  },
+  "author": {
+    "name": "Ryan",
+    "email": "unqocn@gmail.com",
+    "url": "https://nookpi.tistory.com/"
+  },
+  "keywords": [
+    "easy",
+    "import",
+    "multiple",
+    "asset",
+    "image"
+  ],
+  "main": "index.js",
+  "devDependencies": {
+    "@babel/cli": "^7.13.16",
+    "@babel/core": "^7.13.16",
+    "@babel/plugin-transform-runtime": "^7.16.0",
+    "@babel/preset-env": "^7.13.8",
+    "clean-webpack-plugin": "^4.0.0-alpha.0",
+    "nodemon": "^2.0.7"
+  }
+}
