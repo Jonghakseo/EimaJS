@@ -1,6 +1,9 @@
+import { help } from "./console";
+
 const fs = require("fs");
 const path = require("path");
-const { getFileList, msg } = require("./util");
+const { getFileList } = require("./util");
+const { log } = require("./console");
 
 export async function updateAssetsFile(baseOption) {
   const {
@@ -45,10 +48,10 @@ export async function updateAssetsFile(baseOption) {
 
       const savePath = path.resolve(process.cwd(), `${outPath}`);
       fs.writeFileSync(savePath, assetsTsText);
-      msg(
+      log(
         basePath,
-        "에셋파일이 성공적으로 업데이트 되었습니다.\n",
-        assetFileInfo
+        " - 에셋파일이 성공적으로 업데이트 되었습니다."
+        // assetFileInfo
       );
     } catch (e) {
       console.error(e);
@@ -61,12 +64,14 @@ export function assetsToImportFile(baseOption, additionalOption) {
   const { target } = additionalOption || {};
 
   if (!assetDir) {
-    return msg("asset 경로를 확인해주세요 assetDir:", assetDir);
+    return help(`asset 경로를 확인해주세요 assetDir: ${assetDir}`);
   }
   if (!outFile) {
-    return msg("out 경로를 확인해주세요 outFile:", outFile);
+    return help(`out 경로를 확인해주세요 outFile: ${outFile}`);
   }
-  const variableName = vName || "ASSETS";
+  if (!vName) {
+    return help(`vName을 확인해주세요 vName: ${vName}`);
+  }
   updateAssetsFile(baseOption)
     .then(() => {
       fs.watch(
@@ -75,13 +80,14 @@ export function assetsToImportFile(baseOption, additionalOption) {
           recursive: true,
         },
         (eventType, fileName) => {
-          msg(eventType, fileName || "알 수 없음");
+          const fName = fileName || "알 수 없음";
+          log(`파일 변경 감지 [${eventType} event] - ${fName}`);
           updateAssetsFile(baseOption).catch((e) => console.error(e));
         }
       );
     })
     .catch((e) => {
-      msg("파일 업데이트에서 문제가 발생했습니다.");
+      log("파일 업데이트에서 문제가 발생했습니다.");
       console.error(e);
     });
 }

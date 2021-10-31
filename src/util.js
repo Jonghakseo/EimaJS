@@ -1,3 +1,5 @@
+import path from "path";
+
 const fs = require("fs");
 const util = require("util");
 
@@ -49,6 +51,16 @@ export function checkIsFile(fileName) {
   return fileName.indexOf(".") > 0;
 }
 
-export function msg() {
-  console.info("[EimaJS] :", ...arguments);
+export function makeConfigFile(baseConfigArray) {
+  const configJson = {
+    paths: [
+      {
+        assets: baseConfigArray[0],
+        out: baseConfigArray[1],
+        vName: baseConfigArray[2],
+      },
+    ],
+  };
+  const savePath = path.resolve(process.cwd(), `eima.json`);
+  fs.writeFileSync(savePath, JSON.stringify(configJson));
 }

@@ -1,10 +1,10 @@
 {
   "name": "eima",
-  "version": "1.0.9",
+  "version": "0.1.1",
   "description": "Easy to Import Multiple Assets",
   "scripts": {
     "build": "babel src --out-dir .",
-    "test": "node ./index.js",
+    "test": "node ./index.js start",
     "watch": "nodemon --watch src --exec \"yarn build && yarn test\""
   },
   "bin": {
@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.16.0",
+    "ink": "^3.2.0",
     "path": "^0.12.7",
+    "react": "^17.0.2",
     "util": "^0.12.4"
   },
   "author": {
@@ -34,9 +36,12 @@
     "@babel/eslint-parser": "^7.16.0",
     "@babel/plugin-transform-runtime": "^7.16.0",
     "@babel/preset-env": "^7.13.8",
+    "@babel/preset-react": "^7.16.0",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
     "eslint": "^7.32.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.25.2",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "nodemon": "^2.0.7",
     "prettier": "^2.4.1"
   },

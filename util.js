@@ -8,13 +8,15 @@ Object.defineProperty(exports, "__esModule", {
 exports.checkIsFile = checkIsFile;
 exports.checkIsFolder = checkIsFolder;
 exports.getFileList = getFileList;
-exports.msg = msg;
+exports.makeConfigFile = makeConfigFile;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _path = _interopRequireDefault(require("path"));
 
 var fs = require("fs");
 
@@ -90,8 +92,16 @@ function checkIsFile(fileName) {
   return fileName.indexOf(".") > 0;
 }
 
-function msg() {
-  var _console;
+function makeConfigFile(baseConfigArray) {
+  var configJson = {
+    paths: [{
+      assets: baseConfigArray[0],
+      out: baseConfigArray[1],
+      vName: baseConfigArray[2]
+    }]
+  };
 
-  (_console = console).info.apply(_console, ["[EimaJS] :"].concat(Array.prototype.slice.call(arguments)));
+  var savePath = _path["default"].resolve(process.cwd(), "eima.json");
+
+  fs.writeFileSync(savePath, JSON.stringify(configJson));
 }

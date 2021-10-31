@@ -1,10 +1,1 @@
-{
-    "target": "es5",
-    "paths" : [
-        {
-            "asset" : "test/assets",
-            "out": "test/constants/assets.js",
-            "vName": "ASSETS"
-        }
-    ]
-}
+{"paths":[{"assets":"test/assets","out":"test/constants/assets.js","vName":"ASSETS"}]}

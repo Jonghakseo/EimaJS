@@ -5,16 +5,24 @@
     "node": true
   },
   "parserOptions": {
-    "ecmaVersion": 2015,
-    "sourceType": "module"
+    "ecmaVersion": 12,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
   },
-  "extends": ["eslint:recommended"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
   "parser": "@babel/eslint-parser",
   "plugins": ["prettier"],
   "rules": {
     "quotes": ["error", "double", { "avoidEscape": true }],
     "linebreak-style": ["error", "unix"],
     "no-empty-function": "off",
-    "semi": ["error", "always"]
+    "semi": ["error", "always"],
+    "react/prop-types": "off"
   }
 }
