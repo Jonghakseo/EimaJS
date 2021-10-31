@@ -1,33 +1,38 @@
-import { msg } from "./util";
-import { assetsToImportFile } from "./assetsToImportFile";
+"use strict";
 
-const fs = require("fs");
+var _require = require("./util"),
+    msg = _require.msg;
 
-const path = require("path");
+var _require2 = require("./assetsToImportFile"),
+    assetsToImportFile = _require2.assetsToImportFile;
+
+var fs = require("fs");
+
+var path = require("path");
 /**
  * simple mode - 한 개의 에셋 폴더, 한 개의 import file
  */
 
 
-const SIMPLE_MODE = "SIMPLE";
+var SIMPLE_MODE = "SIMPLE";
 /**
  * config mode - 한 개 이상의 에셋 폴더, 한 개 이상의 import file
  */
 
-const CONFIG_MODE = "CONFIG";
-let mode = SIMPLE_MODE;
+var CONFIG_MODE = "CONFIG";
+var mode = SIMPLE_MODE;
 /**
  *  에셋 경로는 2번째 인자로 받아옵니다.
  */
 
-const assetDir = process.argv.slice(2)[0] || "assets";
+var assetDir = process.argv.slice(2)[0] || "assets";
 /**
  * 내보낼 경로는 3번째 인자로 받아옵니다.
  */
 
-const outPath = process.argv.slice(3)[0] || "assets.js";
-const configPath = path.resolve(process.cwd(), "eima.json");
-let config = null;
+var outPath = process.argv.slice(3)[0] || "assets.js";
+var configPath = path.resolve(process.cwd(), "eima.json");
+var config = null;
 
 try {
   config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
@@ -44,13 +49,19 @@ try {
 
 if (mode === SIMPLE_MODE) {
   msg("eima.json 파일을 찾을 수 없거나 읽을 수 없습니다. 심플모드로 동작합니다.");
-  assetsToImportFile(assetDir, outPath);
+  assetsToImportFile({
+    assetDir: assetDir,
+    outFile: outPath
+  });
 } else if (mode === CONFIG_MODE) {
-  config.paths.forEach(({
-    asset,
-    out,
-    vName
-  }) => {
-    assetsToImportFile(asset, out, vName);
+  config.paths.forEach(function (_ref) {
+    var asset = _ref.asset,
+        out = _ref.out,
+        vName = _ref.vName;
+    assetsToImportFile({
+      assetDir: asset,
+      outFile: out,
+      vName: vName
+    }, config);
   });
 }

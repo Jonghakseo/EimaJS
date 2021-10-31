@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-import {getFileList, msg} from "./util";
+const {getFileList, msg} = require("./util");
 
 export async function updateAssetsFile(basePath, outPath, variableName) {
 
@@ -48,23 +48,26 @@ export async function updateAssetsFile(basePath, outPath, variableName) {
     }
 }
 
-export function assetsToImportFile(dir, outPath, vName) {
-    if (!dir){
-       return msg("asset 경로를 확인해주세요 asset:",dir)
-    }git
-    if (!outPath){
-        return msg("out 경로를 확인해주세요 outPath:", outPath)
+export function assetsToImportFile(baseOption, additionalOption) {
+    const { assetDir, outFile, vName } = baseOption
+    const { target } = additionalOption || {};
+    console.log(target)
+    if (!assetDir){
+       return msg("asset 경로를 확인해주세요 assetDir:",assetDir)
+    }
+    if (!outFile){
+        return msg("out 경로를 확인해주세요 outFile:", outFile)
     }
     const variableName = vName || "ASSETS"
-    updateAssetsFile(dir, outPath, variableName).then(() => {
+    updateAssetsFile(assetDir, outFile, variableName).then(() => {
         fs.watch(
-            dir,
+            assetDir,
             {
                 recursive: true,
             },
             (eventType, fileName) => {
                 msg(eventType, fileName || "알 수 없음");
-                updateAssetsFile(dir, outPath, variableName).catch((e) => console.error(e));
+                updateAssetsFile(assetDir, outFile, variableName).catch((e) => console.error(e));
             }
         );
     }).catch((e) => {

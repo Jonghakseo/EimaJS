@@ -1,5 +1,5 @@
-import {msg} from "./util";
-import {assetsToImportFile} from "./assetsToImportFile";
+const {msg} = require("./util") ;
+const {assetsToImportFile} = require("./assetsToImportFile");
 
 const fs = require("fs");
 const path = require("path");
@@ -41,11 +41,11 @@ try{
 
 if (mode === SIMPLE_MODE){
     msg("eima.json 파일을 찾을 수 없거나 읽을 수 없습니다. 심플모드로 동작합니다.")
-    assetsToImportFile(assetDir, outPath);
+    assetsToImportFile({ assetDir, outFile:outPath });
 }
 else if (mode === CONFIG_MODE) {
     config.paths.forEach(({asset, out, vName}) => {
-        assetsToImportFile(asset, out, vName)
+        assetsToImportFile({assetDir:asset, outFile:out, vName}, config)
     })
 }
 
