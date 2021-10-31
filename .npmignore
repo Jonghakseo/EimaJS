@@ -1,6 +1,5 @@
 node_modules
-assets
-constants
-eima.json
+test
 /src
 .idea
+.babelrc
