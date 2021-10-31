@@ -2,14 +2,9 @@
     "target": "es5",
     "paths" : [
         {
-            "asset" : "assets/jpg",
-            "out": "constants/assets.js",
-            "vName": "JPG_ASSETS"
-        },
-        {
-            "asset" : "assets/png",
-            "out": "constants/assets/assets.js",
-            "vName": "PNG_ASSETS"
+            "asset" : "test/assets",
+            "out": "test/constants/assets.js",
+            "vName": "ASSETS"
         }
     ]
 }

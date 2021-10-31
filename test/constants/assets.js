@@ -1,7 +1,9 @@
-import JPG_STYLE from "../test/assets/jpg/jpg_style.png";
+import PNG_SAMPLE from "../../test/assets/png/sample.png";
+import SAMPLE from "../../test/assets/sample.png";
 
-const JPG_ASSETS = {
-  JPG_STYLE
+const ASSETS = {
+  PNG_SAMPLE,
+  SAMPLE
 };
 
-export default JPG_ASSETS;
+export default ASSETS;
