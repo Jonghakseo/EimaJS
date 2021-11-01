@@ -60,13 +60,14 @@ export function checkIsFile(fileName) {
   return fileName.indexOf(".") > 0;
 }
 
-export function makeConfigFile(baseConfigArray) {
+export function makeConfigFile(inputConfigArray) {
   const configJson = {
+    target: inputConfigArray[0],
     paths: [
       {
-        assets: baseConfigArray[0],
-        out: baseConfigArray[1],
-        vName: baseConfigArray[2],
+        assets: inputConfigArray[1],
+        out: inputConfigArray[2],
+        vName: inputConfigArray[3],
       },
     ],
   };

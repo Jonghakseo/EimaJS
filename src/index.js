@@ -1,5 +1,6 @@
 import { makeConfigFile } from "./util";
 import { help } from "./console";
+import { CONFIG_MODE, ES_VERSION, SIMPLE_MODE } from "./constants";
 
 const { msg, log } = require("./console");
 const { assetsToImportFile } = require("./assetsToImportFile");
@@ -28,38 +29,42 @@ function initial() {
     terminal: true,
   });
 
-  let baseOptions = [];
-  // let advancedOption = [];
-  // msg("사용중인 EcmaScript 버전을 골라주세요 es5(require)/es6(import) 기본: [es6]");
-  msg("(1/3) {선택} 에셋 폴더 경로를 입력해주세요. 기본: [assets]");
+  let options = [];
+  msg(
+    "사용중인 EcmaScript 버전을 골라주세요 es5(require)/es6(import) 기본: [es6]"
+  );
+
   rl.on("line", function (line) {
     let input = line;
     // msg(input);
-    switch (baseOptions.length) {
-      // case 0:
-      //   input = line || "es6";
-      // break;
+    switch (options.length) {
       case 0:
-        input = line || "assets";
-        baseOptions.push(input);
-        msg("(2/3) {선택} 내보낼 파일을 지정해주세요. 기본: [src/assets.js]");
+        input = line || "es6";
+        options.push(input);
+        msg("(1/3) {선택} 에셋 폴더 경로를 입력해주세요. 기본: [assets]");
         break;
       case 1:
-        input = line || "src/assets.js";
-        baseOptions.push(input);
-        msg("(3/3) {선택} 내보낼 에셋 변수명을 지정해주세요. 기본: [ASSETS]");
+        input = line || "assets";
+        options.push(input);
+        msg("(2/3) {선택} 내보낼 파일을 지정해주세요. 기본: [src/assets.js]");
         break;
       case 2:
+        input = line || "src/assets.js";
+        options.push(input);
+        msg("(3/3) {선택} 내보낼 에셋 변수명을 지정해주세요. 기본: [ASSETS]");
+        break;
+      case 3:
         input = line || "ASSETS";
-        baseOptions.push(input);
+        options.push(input);
         const text = `현재 설정으로 시작하시겠습니까? [Y]
-            에셋 폴더   : ${baseOptions[0]}
-            내보낼 파일 : ${baseOptions[1]}
-            변수명      : ${baseOptions[2]}
+            es 타겟     : ${options[0]}
+            에셋 폴더   : ${options[1]}
+            내보낼 파일 : ${options[2]}
+            변수명      : ${options[3]}
     `;
         msg(text);
         break;
-      case 3:
+      case 4:
         if (line === "Y" || line === "y") {
           msg("설정 완료");
           rl.close();
@@ -71,7 +76,7 @@ function initial() {
     }
     // rl.close();
   }).on("close", function () {
-    makeConfigFile(baseOptions);
+    makeConfigFile(options);
     log(
       "에셋 폴더 설정이 완료되었습니다. 이후 에셋 폴더 감시는 eima start를 통해 시작할 수 있습니다."
     );
@@ -92,14 +97,6 @@ function start() {
   const configPath = path.resolve(process.cwd(), "eima.json");
 
   let config = null;
-  /**
-   * simple mode - 한 개의 에셋 폴더, 한 개의 import file
-   */
-  const SIMPLE_MODE = "SIMPLE";
-  /**
-   * config mode - 한 개 이상의 에셋 폴더, 한 개 이상의 import file
-   */
-  const CONFIG_MODE = "CONFIG";
 
   let mode = SIMPLE_MODE;
 
@@ -124,8 +121,15 @@ function start() {
   } else if (mode === CONFIG_MODE) {
     log("eima.json 파일을 찾았습니다.");
     const { target } = { ...config };
-    config.paths.forEach(({ assets, out, vName }) => {
-      assetsToImportFile({ assetDir: assets, outFile: out, vName }, config);
-    });
+    if (target !== ES_VERSION.ES5 && target !== ES_VERSION.ES6) {
+      help("타겟 es 버전을 체크해주세요. (es5/es6)");
+    } else {
+      if (!target) {
+        config.target = ES_VERSION.ES6;
+      }
+      config.paths.forEach(({ assets, out, vName }) => {
+        assetsToImportFile({ assetDir: assets, outFile: out, vName }, config);
+      });
+    }
   }
 }

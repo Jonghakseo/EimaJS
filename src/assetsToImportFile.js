@@ -1,16 +1,70 @@
 import { help } from "./console";
+import { ES_VERSION } from "./constants";
 const { ESLint } = require("eslint");
 const fs = require("fs");
 const path = require("path");
 const { getFileList } = require("./util");
 const { log } = require("./console");
 
-export async function updateAssetsFile(baseOption) {
+function makeAssetFileTextEs6(
+  assetFileInfo,
+  depthPrefix,
+  basePath,
+  variableName
+) {
+  const assetImportText =
+    assetFileInfo
+      .map(({ constName, filePath }) => {
+        return `import ${constName} from "${depthPrefix}${basePath}/${filePath}"`;
+      })
+      .join(";\n") + ";";
+
+  const assetExportText = `const ${variableName} = {\n  ${assetFileInfo
+    .map(({ constName }) => constName)
+    .join(",\n  ")}\n};`;
+
+  return (
+    assetImportText +
+    "\n\n" +
+    assetExportText +
+    `\n\nexport default ${variableName};`
+  );
+}
+
+function makeAssetFileTextEs5(
+  assetFileInfo,
+  depthPrefix,
+  basePath,
+  variableName
+) {
+  const assetImportText =
+    assetFileInfo
+      .map(({ constName, filePath }) => {
+        return `var ${constName} = require("${depthPrefix}${basePath}/${filePath}");`;
+      })
+      .join(";\n") + ";";
+
+  const assetExportText = `var ${variableName} = {\n  ${assetFileInfo
+    .map(({ constName }) => constName)
+    .join(",\n  ")}\n};`;
+
+  return (
+    assetImportText +
+    "\n\n" +
+    assetExportText +
+    `\n\nmodule.export = ${variableName};`
+  );
+}
+
+export async function updateAssetsFile(baseOption, config) {
   const {
     assetDir: basePath,
     outFile: outPath,
     vName: variableName,
   } = baseOption;
+
+  const { target } = config;
+
   if (basePath) {
     const pathName = path.resolve(process.cwd(), basePath);
     try {
@@ -31,27 +85,34 @@ export async function updateAssetsFile(baseOption) {
       for (let i = 0; i < outPathDepth; i++) {
         depthPrefix += "../";
       }
-      const assetImportText =
-        assetFileInfo
-          .map(({ constName, filePath }) => {
-            return `import ${constName} from "${depthPrefix}${basePath}/${filePath}"`;
-          })
-          .join(";\n") + ";";
-      const assetExportText = `const ${variableName} = {\n  ${assetFileInfo
-        .map(({ constName }) => constName)
-        .join(",\n  ")}\n};`;
-
-      const assetsTsText =
-        assetImportText +
-        "\n\n" +
-        assetExportText +
-        `\n\nexport default ${variableName};`;
+      let assetsTsText;
+      if (target === ES_VERSION.ES5) {
+        assetsTsText = makeAssetFileTextEs5(
+          assetFileInfo,
+          depthPrefix,
+          basePath,
+          variableName
+        );
+      } else {
+        assetsTsText = makeAssetFileTextEs6(
+          assetFileInfo,
+          depthPrefix,
+          basePath,
+          variableName
+        );
+      }
 
       const savePath = path.resolve(process.cwd(), `${outPath}`);
       log("에셋 import파일 생성중...");
       fs.writeFileSync(savePath, assetsTsText);
+      let ecmaVersion = target === ES_VERSION.ES5 ? 3 : 2015;
       const eslint = new ESLint({
         fix: true,
+        overrideConfig: {
+          parserOptions: {
+            ecmaVersion: ecmaVersion,
+          },
+        },
       });
       const result = await eslint.lintFiles([outPath]);
       log("eslint 실행중...");
@@ -67,10 +128,9 @@ export async function updateAssetsFile(baseOption) {
   }
 }
 
-export function assetsToImportFile(baseOption, additionalOption) {
+export function assetsToImportFile(baseOption, config) {
   const { assetDir, outFile, vName } = baseOption;
-  const { target } = additionalOption || {};
-
+  // const { target } = config || {};
   if (!assetDir) {
     return help(`asset 경로를 확인해주세요 assetDir: ${assetDir}`);
   }
@@ -80,7 +140,7 @@ export function assetsToImportFile(baseOption, additionalOption) {
   if (!vName) {
     return help(`vName을 확인해주세요 vName: ${vName}`);
   }
-  updateAssetsFile(baseOption)
+  updateAssetsFile(baseOption, config)
     .then(() => {
       fs.watch(
         assetDir,
@@ -90,7 +150,7 @@ export function assetsToImportFile(baseOption, additionalOption) {
         (eventType, fileName) => {
           const fName = fileName || "알 수 없음";
           log(`파일 변경 감지 [${eventType} event] - ${fName}`);
-          updateAssetsFile(baseOption).catch((e) => console.error(e));
+          updateAssetsFile(baseOption, config).catch((e) => console.error(e));
         }
       );
     })
