@@ -1,5 +1,5 @@
 import { help } from "./console";
-
+const { ESLint } = require("eslint");
 const fs = require("fs");
 const path = require("path");
 const { getFileList } = require("./util");
@@ -18,9 +18,9 @@ export async function updateAssetsFile(baseOption) {
       const assetFileInfo = fileList
         .flat(Infinity)
         .filter(Boolean)
-        .map(({ name, filePath }) => {
-          const underBar = /-/gi;
-          const constName = name.replace(underBar, "_");
+        .map(({ name, ext, filePath }) => {
+          const constName =
+            name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
           return { constName, filePath };
         });
 
@@ -48,6 +48,13 @@ export async function updateAssetsFile(baseOption) {
 
       const savePath = path.resolve(process.cwd(), `${outPath}`);
       fs.writeFileSync(savePath, assetsTsText);
+      const eslint = new ESLint({
+        fix: true,
+        plugins: null,
+        useEslintrc: false,
+      });
+      const result = await eslint.lintFiles([outPath]);
+      await ESLint.outputFixes(result);
       log(
         basePath,
         " - 에셋파일이 성공적으로 업데이트 되었습니다."

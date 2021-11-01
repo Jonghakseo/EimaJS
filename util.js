@@ -42,14 +42,22 @@ function _getFileList() {
           case 2:
             fileNames = _context.sent;
             return _context.abrupt("return", Promise.all(fileNames.map(function (name) {
+              // 폴더인 경우 재귀 탐색
               if (checkIsFolder(name)) {
-                // 폴더인 경우 재귀 탐색
                 return getFileList(pathname, [].concat((0, _toConsumableArray2["default"])(prefix), [name]));
-              }
+              } // 파일인 경우
 
+
+              // 파일인 경우
               if (checkIsFile(name)) {
-                // 파일인 경우
-                var CONSTANTS_NAME = name.toUpperCase().split(".")[0]; // 상수명 선언
+                // (.) dot split
+                var dotSplitFileName = name.toUpperCase().split("."); // 상수명
+
+                // 상수명
+                var CONSTANTS_NAME = dotSplitFileName[0]; // 확장자
+
+                // 확장자
+                var ext = dotSplitFileName[dotSplitFileName.length - 1]; // 상수명 선언
 
                 // 상수명 선언
                 var filePath = name; // prefix(depth)가 없으면 파일명이 곧 경로
@@ -66,6 +74,7 @@ function _getFileList() {
                 return new Promise(function (resolve) {
                   resolve({
                     name: CONSTANTS_NAME,
+                    ext: ext,
                     filePath: filePath
                   });
                 });

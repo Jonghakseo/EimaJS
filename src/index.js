@@ -27,12 +27,18 @@ function initial() {
     output: process.stdout,
     terminal: true,
   });
-  msg("(1/3) {선택} 에셋 폴더 경로를 입력해주세요. 기본: [assets]");
+
   let baseOptions = [];
+  // let advancedOption = [];
+  // msg("사용중인 EcmaScript 버전을 골라주세요 es5(require)/es6(import) 기본: [es6]");
+  msg("(1/3) {선택} 에셋 폴더 경로를 입력해주세요. 기본: [assets]");
   rl.on("line", function (line) {
     let input = line;
     // msg(input);
     switch (baseOptions.length) {
+      // case 0:
+      //   input = line || "es6";
+      // break;
       case 0:
         input = line || "assets";
         baseOptions.push(input);
@@ -55,8 +61,10 @@ function initial() {
         break;
       case 3:
         if (line === "Y" || line === "y") {
+          msg("설정 완료");
           rl.close();
         } else {
+          msg("설정 중단");
           process.exit();
         }
         break;
@@ -115,6 +123,7 @@ function start() {
     assetsToImportFile({ assetDir, outFile: outPath });
   } else if (mode === CONFIG_MODE) {
     log("eima.json 파일을 찾았습니다.");
+    const { target } = { ...config };
     config.paths.forEach(({ assets, out, vName }) => {
       assetsToImportFile({ assetDir: assets, outFile: out, vName }, config);
     });

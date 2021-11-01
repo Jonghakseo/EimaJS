@@ -14,15 +14,18 @@ var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/
 
 var _console = require("./console");
 
+var _require = require("eslint"),
+    ESLint = _require.ESLint;
+
 var fs = require("fs");
 
 var path = require("path");
 
-var _require = require("./util"),
-    getFileList = _require.getFileList;
+var _require2 = require("./util"),
+    getFileList = _require2.getFileList;
 
-var _require2 = require("./console"),
-    log = _require2.log;
+var _require3 = require("./console"),
+    log = _require3.log;
 
 function updateAssetsFile(_x) {
   return _updateAssetsFile.apply(this, arguments);
@@ -30,7 +33,7 @@ function updateAssetsFile(_x) {
 
 function _updateAssetsFile() {
   _updateAssetsFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(baseOption) {
-    var basePath, outPath, variableName, pathName, fileList, assetFileInfo, regexp, outPathDepth, depthPrefix, i, assetImportText, assetExportText, assetsTsText, savePath;
+    var basePath, outPath, variableName, pathName, fileList, assetFileInfo, regexp, outPathDepth, depthPrefix, i, assetImportText, assetExportText, assetsTsText, savePath, eslint, result;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -38,7 +41,7 @@ function _updateAssetsFile() {
             basePath = baseOption.assetDir, outPath = baseOption.outFile, variableName = baseOption.vName;
 
             if (!basePath) {
-              _context.next = 23;
+              _context.next = 29;
               break;
             }
 
@@ -51,9 +54,9 @@ function _updateAssetsFile() {
             fileList = _context.sent;
             assetFileInfo = fileList.flat(Infinity).filter(Boolean).map(function (_ref2) {
               var name = _ref2.name,
+                  ext = _ref2.ext,
                   filePath = _ref2.filePath;
-              var underBar = /-/gi;
-              var constName = name.replace(underBar, "_");
+              var constName = name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
               return {
                 constName: constName,
                 filePath: filePath
@@ -79,22 +82,36 @@ function _updateAssetsFile() {
             assetsTsText = assetImportText + "\n\n" + assetExportText + "\n\nexport default ".concat(variableName, ";");
             savePath = path.resolve(process.cwd(), "".concat(outPath));
             fs.writeFileSync(savePath, assetsTsText);
-            log(basePath, " - 에셋파일이 성공적으로 업데이트 되었습니다." // assetFileInfo
-            );
-            _context.next = 23;
-            break;
+            eslint = new ESLint({
+              fix: true,
+              plugins: null,
+              useEslintrc: false
+            });
+            _context.next = 20;
+            return eslint.lintFiles([outPath]);
 
           case 20:
-            _context.prev = 20;
+            result = _context.sent;
+            _context.next = 23;
+            return ESLint.outputFixes(result);
+
+          case 23:
+            log(basePath, " - 에셋파일이 성공적으로 업데이트 되었습니다." // assetFileInfo
+            );
+            _context.next = 29;
+            break;
+
+          case 26:
+            _context.prev = 26;
             _context.t0 = _context["catch"](3);
             console.error(_context.t0);
 
-          case 23:
+          case 29:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[3, 20]]);
+    }, _callee, null, [[3, 26]]);
   }));
   return _updateAssetsFile.apply(this, arguments);
 }

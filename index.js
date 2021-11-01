@@ -1,8 +1,16 @@
 "use strict";
 
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
 var _util = require("./util");
 
 var _console = require("./console");
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 var _require = require("./console"),
     msg = _require.msg,
@@ -38,12 +46,17 @@ function initial() {
     output: process.stdout,
     terminal: true
   });
+  var baseOptions = []; // let advancedOption = [];
+  // msg("사용중인 EcmaScript 버전을 골라주세요 es5(require)/es6(import) 기본: [es6]");
+
   msg("(1/3) {선택} 에셋 폴더 경로를 입력해주세요. 기본: [assets]");
-  var baseOptions = [];
   rl.on("line", function (line) {
     var input = line; // msg(input);
 
     switch (baseOptions.length) {
+      // case 0:
+      //   input = line || "es6";
+      // break;
       case 0:
         input = line || "assets";
         baseOptions.push(input);
@@ -65,8 +78,10 @@ function initial() {
 
       case 3:
         if (line === "Y" || line === "y") {
+          msg("설정 완료");
           rl.close();
         } else {
+          msg("설정 중단");
           process.exit();
         }
 
@@ -125,6 +140,10 @@ function start() {
     });
   } else if (mode === CONFIG_MODE) {
     log("eima.json 파일을 찾았습니다.");
+
+    var _config = _objectSpread({}, config),
+        target = _config.target;
+
     config.paths.forEach(function (_ref) {
       var assets = _ref.assets,
           out = _ref.out,

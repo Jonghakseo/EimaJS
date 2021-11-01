@@ -15,15 +15,24 @@ export async function getFileList(pathname, prefix) {
   // 찾은 모든 파일에 대해 병렬적으로 프로세스 실행
   return Promise.all(
     fileNames.map((name) => {
+      // 폴더인 경우 재귀 탐색
       if (checkIsFolder(name)) {
-        // 폴더인 경우 재귀 탐색
         return getFileList(pathname, [...prefix, name]);
       }
+      // 파일인 경우
       if (checkIsFile(name)) {
-        // 파일인 경우
-        let CONSTANTS_NAME = name.toUpperCase().split(".")[0];
+        // (.) dot split
+        const dotSplitFileName = name.toUpperCase().split(".");
+
+        // 상수명
+        let CONSTANTS_NAME = dotSplitFileName[0];
+
+        // 확장자
+        const ext = dotSplitFileName[dotSplitFileName.length - 1];
+
         // 상수명 선언
         let filePath = name;
+
         // prefix(depth)가 없으면 파일명이 곧 경로
         if (prefix.length > 0) {
           // 그렇지 않으면 경로를 포함해서 상수명 및 경로 수정
@@ -34,7 +43,7 @@ export async function getFileList(pathname, prefix) {
         }
         // resolve 처리
         return new Promise(function (resolve) {
-          resolve({ name: CONSTANTS_NAME, filePath });
+          resolve({ name: CONSTANTS_NAME, ext, filePath });
         });
       } else {
         return null;
