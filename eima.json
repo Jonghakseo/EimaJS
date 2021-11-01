@@ -1,1 +1,9 @@
-{"paths":[{"assets":"test/assets","out":"test/constants/asset.js","vName":"ASSETS"}]}
+{
+  "paths": [
+    {
+      "assets": "test/assets",
+      "out": "test/constants/asset.js",
+      "vName": "ASSETS"
+    }
+  ]
+}

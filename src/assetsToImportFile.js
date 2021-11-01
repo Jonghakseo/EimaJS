@@ -50,10 +50,9 @@ export async function updateAssetsFile(baseOption) {
       fs.writeFileSync(savePath, assetsTsText);
       const eslint = new ESLint({
         fix: true,
-        plugins: null,
-        useEslintrc: false,
       });
       const result = await eslint.lintFiles([outPath]);
+      console.log(result);
       await ESLint.outputFixes(result);
       log(
         basePath,

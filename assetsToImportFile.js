@@ -41,7 +41,7 @@ function _updateAssetsFile() {
             basePath = baseOption.assetDir, outPath = baseOption.outFile, variableName = baseOption.vName;
 
             if (!basePath) {
-              _context.next = 29;
+              _context.next = 30;
               break;
             }
 
@@ -83,35 +83,34 @@ function _updateAssetsFile() {
             savePath = path.resolve(process.cwd(), "".concat(outPath));
             fs.writeFileSync(savePath, assetsTsText);
             eslint = new ESLint({
-              fix: true,
-              plugins: null,
-              useEslintrc: false
+              fix: true
             });
             _context.next = 20;
             return eslint.lintFiles([outPath]);
 
           case 20:
             result = _context.sent;
-            _context.next = 23;
+            console.log(result);
+            _context.next = 24;
             return ESLint.outputFixes(result);
 
-          case 23:
+          case 24:
             log(basePath, " - 에셋파일이 성공적으로 업데이트 되었습니다." // assetFileInfo
             );
-            _context.next = 29;
+            _context.next = 30;
             break;
 
-          case 26:
-            _context.prev = 26;
+          case 27:
+            _context.prev = 27;
             _context.t0 = _context["catch"](3);
             console.error(_context.t0);
 
-          case 29:
+          case 30:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[3, 26]]);
+    }, _callee, null, [[3, 27]]);
   }));
   return _updateAssetsFile.apply(this, arguments);
 }
