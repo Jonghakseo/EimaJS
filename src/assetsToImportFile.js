@@ -14,6 +14,7 @@ export async function updateAssetsFile(baseOption) {
   if (basePath) {
     const pathName = path.resolve(process.cwd(), basePath);
     try {
+      log("파일 목록을 가져오는 중...");
       const fileList = await getFileList(pathName, []);
       const assetFileInfo = fileList
         .flat(Infinity)
@@ -47,12 +48,13 @@ export async function updateAssetsFile(baseOption) {
         `\n\nexport default ${variableName};`;
 
       const savePath = path.resolve(process.cwd(), `${outPath}`);
+      log("에셋 import파일 생성중...");
       fs.writeFileSync(savePath, assetsTsText);
       const eslint = new ESLint({
         fix: true,
       });
       const result = await eslint.lintFiles([outPath]);
-      console.log(result);
+      log("eslint 실행중...");
       await ESLint.outputFixes(result);
       log(
         basePath,

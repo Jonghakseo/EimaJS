@@ -41,16 +41,17 @@ function _updateAssetsFile() {
             basePath = baseOption.assetDir, outPath = baseOption.outFile, variableName = baseOption.vName;
 
             if (!basePath) {
-              _context.next = 30;
+              _context.next = 32;
               break;
             }
 
             pathName = path.resolve(process.cwd(), basePath);
             _context.prev = 3;
-            _context.next = 6;
+            log("파일 목록을 가져오는 중...");
+            _context.next = 7;
             return getFileList(pathName, []);
 
-          case 6:
+          case 7:
             fileList = _context.sent;
             assetFileInfo = fileList.flat(Infinity).filter(Boolean).map(function (_ref2) {
               var name = _ref2.name,
@@ -81,36 +82,37 @@ function _updateAssetsFile() {
             }).join(",\n  "), "\n};");
             assetsTsText = assetImportText + "\n\n" + assetExportText + "\n\nexport default ".concat(variableName, ";");
             savePath = path.resolve(process.cwd(), "".concat(outPath));
+            log("에셋 import파일 생성중...");
             fs.writeFileSync(savePath, assetsTsText);
             eslint = new ESLint({
               fix: true
             });
-            _context.next = 20;
+            _context.next = 22;
             return eslint.lintFiles([outPath]);
 
-          case 20:
+          case 22:
             result = _context.sent;
-            console.log(result);
-            _context.next = 24;
+            log("eslint 실행중...");
+            _context.next = 26;
             return ESLint.outputFixes(result);
 
-          case 24:
+          case 26:
             log(basePath, " - 에셋파일이 성공적으로 업데이트 되었습니다." // assetFileInfo
             );
-            _context.next = 30;
+            _context.next = 32;
             break;
 
-          case 27:
-            _context.prev = 27;
+          case 29:
+            _context.prev = 29;
             _context.t0 = _context["catch"](3);
             console.error(_context.t0);
 
-          case 30:
+          case 32:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[3, 27]]);
+    }, _callee, null, [[3, 29]]);
   }));
   return _updateAssetsFile.apply(this, arguments);
 }
