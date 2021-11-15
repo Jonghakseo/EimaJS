@@ -16,6 +16,7 @@ list of commands
 - Filename extension can be distinguished
 - Auto eslint assets.js
 - (import/require) Both methods are available
+- Check Asset size
 
 ### TODO
 - DETECT AND DELETE UNUSED ASSET

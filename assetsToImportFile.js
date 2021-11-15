@@ -29,27 +29,55 @@ var _require2 = require("./util"),
 var _require3 = require("./console"),
     log = _require3.log;
 
-function makeAssetFileTextEs6(assetFileInfo, depthPrefix, basePath, variableName) {
-  var assetImportText = assetFileInfo.map(function (_ref) {
-    var constName = _ref.constName,
-        filePath = _ref.filePath;
-    return "import ".concat(constName, " from \"").concat(depthPrefix).concat(basePath, "/").concat(filePath, "\"");
-  }).join(";\n") + ";";
-  var assetExportText = "const ".concat(variableName, " = {\n  ").concat(assetFileInfo.map(function (_ref2) {
-    var constName = _ref2.constName;
+function makeAssetFileText(material) {
+  var target = material.config.target;
+
+  if (target === _constants.ES_VERSION.ES5) {
+    return makeAssetFileTextEs5(material);
+  }
+
+  if (target === _constants.ES_VERSION.ES6) {
+    return makeAssetFileTextEs6(material);
+  }
+}
+
+function makeAssetFileTextEs6(_ref) {
+  var config = _ref.config,
+      assetFileInfo = _ref.assetFileInfo,
+      depthPrefix = _ref.depthPrefix,
+      basePath = _ref.basePath,
+      variableName = _ref.variableName;
+  var hideSize = config.hideSize;
+  var assetImportText = assetFileInfo.map(function (_ref2) {
+    var constName = _ref2.constName,
+        filePath = _ref2.filePath,
+        size = _ref2.size;
+    var sizeComment = hideSize ? "" : "// ".concat(size);
+    return "import ".concat(constName, " from \"").concat(depthPrefix).concat(basePath, "/").concat(filePath, "\"; ").concat(sizeComment);
+  }).join("\n");
+  var assetExportText = "const ".concat(variableName, " = {\n  ").concat(assetFileInfo.map(function (_ref3) {
+    var constName = _ref3.constName;
     return constName;
   }).join(",\n  "), "\n};");
   return assetImportText + "\n\n" + assetExportText + "\n\nexport default ".concat(variableName, ";");
 }
 
-function makeAssetFileTextEs5(assetFileInfo, depthPrefix, basePath, variableName) {
-  var assetImportText = assetFileInfo.map(function (_ref3) {
-    var constName = _ref3.constName,
-        filePath = _ref3.filePath;
-    return "var ".concat(constName, " = require(\"").concat(depthPrefix).concat(basePath, "/").concat(filePath, "\")");
-  }).join(";\n") + ";";
-  var assetExportText = "var ".concat(variableName, " = {\n  ").concat(assetFileInfo.map(function (_ref4) {
-    var constName = _ref4.constName;
+function makeAssetFileTextEs5(_ref4) {
+  var config = _ref4.config,
+      assetFileInfo = _ref4.assetFileInfo,
+      depthPrefix = _ref4.depthPrefix,
+      basePath = _ref4.basePath,
+      variableName = _ref4.variableName;
+  var hideSize = config.hideSize;
+  var assetImportText = assetFileInfo.map(function (_ref5) {
+    var constName = _ref5.constName,
+        filePath = _ref5.filePath,
+        size = _ref5.size;
+    var sizeComment = hideSize ? "" : "// ".concat(size);
+    return "var ".concat(constName, " = require(\"").concat(depthPrefix).concat(basePath, "/").concat(filePath, "\"); ").concat(sizeComment);
+  }).join("\n");
+  var assetExportText = "var ".concat(variableName, " = {\n  ").concat(assetFileInfo.map(function (_ref6) {
+    var constName = _ref6.constName;
     return constName;
   }).join(",\n  "), "\n};");
   return assetImportText + "\n\n" + assetExportText + "\n\nmodule.exports = ".concat(variableName, ";");
@@ -61,35 +89,32 @@ function updateAssetsFile(_x, _x2) {
 
 function _updateAssetsFile() {
   _updateAssetsFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(baseOption, config) {
-    var basePath, outPath, variableName, target, pathName, fileList, assetFileInfo, regexp, outPathDepth, depthPrefix, i, assetsTsText, savePath, ecmaVersion, eslint, result;
+    var basePath, outPath, variableName, target, pathName, fileList, assetFileInfo, regexp, outPathDepth, depthPrefix, i, material, assetsTsText, savePath, ecmaVersion, eslint, result;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             basePath = baseOption.assetDir, outPath = baseOption.outFile, variableName = baseOption.vName;
             target = config.target;
+            pathName = path.resolve(process.cwd(), basePath); // ? 파일 목록 재귀로 가져옴
 
-            if (!basePath) {
-              _context.next = 32;
-              break;
-            }
-
-            pathName = path.resolve(process.cwd(), basePath);
-            _context.prev = 4;
             log("GETTING LIST OF FILES...");
-            _context.next = 8;
+            _context.next = 6;
             return getFileList(pathName, []);
 
-          case 8:
+          case 6:
             fileList = _context.sent;
-            assetFileInfo = fileList.flat(Infinity).filter(Boolean).map(function (_ref5) {
-              var name = _ref5.name,
-                  ext = _ref5.ext,
-                  filePath = _ref5.filePath;
+            assetFileInfo = fileList.filter(Boolean).flat(Infinity).map(function (_ref7) {
+              var name = _ref7.name,
+                  ext = _ref7.ext,
+                  filePath = _ref7.filePath,
+                  size = _ref7.size;
+              // console.log(name, ext, filePath, size);
               var constName = name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
               return {
                 constName: constName,
-                filePath: filePath
+                filePath: filePath,
+                size: size
               };
             });
             regexp = new RegExp("/", "g");
@@ -100,12 +125,14 @@ function _updateAssetsFile() {
               depthPrefix += "../";
             }
 
-            if (target === _constants.ES_VERSION.ES5) {
-              assetsTsText = makeAssetFileTextEs5(assetFileInfo, depthPrefix, basePath, variableName);
-            } else {
-              assetsTsText = makeAssetFileTextEs6(assetFileInfo, depthPrefix, basePath, variableName);
-            }
-
+            material = {
+              config: config,
+              assetFileInfo: assetFileInfo,
+              depthPrefix: depthPrefix,
+              basePath: basePath,
+              variableName: variableName
+            };
+            assetsTsText = makeAssetFileText(material);
             savePath = path.resolve(process.cwd(), "".concat(outPath));
             log("CREATING ASSET IMPORT FILE...");
             fs.writeFileSync(savePath, assetsTsText);
@@ -118,32 +145,24 @@ function _updateAssetsFile() {
                 }
               }
             });
+            log("RUNNING ESLINT...");
             _context.next = 22;
             return eslint.lintFiles([outPath]);
 
           case 22:
             result = _context.sent;
-            log("RUNNING ESLINT...");
-            _context.next = 26;
+            _context.next = 25;
             return ESLint.outputFixes(result);
 
+          case 25:
+            log("".concat(basePath, " - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED."));
+
           case 26:
-            log(basePath, " - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED." // assetFileInfo
-            );
-            _context.next = 32;
-            break;
-
-          case 29:
-            _context.prev = 29;
-            _context.t0 = _context["catch"](4);
-            console.error(_context.t0);
-
-          case 32:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[4, 29]]);
+    }, _callee);
   }));
   return _updateAssetsFile.apply(this, arguments);
 }

@@ -2,7 +2,7 @@ import React from "react";
 import { render, Text, Box, Static } from "ink";
 
 const Help = ({ msg }) => (
-  <Static items={["1"]}>
+  <Static items={["help"]}>
     {(value) => (
       <Box key={value}>
         <Text color="yellow">{`[EIMA] : ${msg}`}</Text>
@@ -12,11 +12,22 @@ const Help = ({ msg }) => (
 );
 
 const Message = ({ msg }) => (
-  <Static items={["2"]}>
+  <Static items={["msg"]}>
     {(value) => (
       <Box key={value}>
-        <Text color="blue">[EimaJS] :</Text>
+        <Text color="blue">[EIMA] :</Text>
         <Text color="rgb(43,210,131)">{` ${msg}`}</Text>
+      </Box>
+    )}
+  </Static>
+);
+
+const Log = ({ msg }) => (
+  <Static items={["log"]}>
+    {(value) => (
+      <Box key={value}>
+        <Text color="grey">[EIMA] :</Text>
+        <Text color="yellow" dimColor>{` ${msg}`}</Text>
       </Box>
     )}
   </Static>
@@ -31,5 +42,6 @@ export function help() {
 }
 
 export function log() {
-  console.info("[EIMA] :", ...arguments);
+  render(<Log msg={[...arguments]} />).cleanup();
+  // console.info("[EIMA] :", ...arguments);
 }
