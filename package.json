@@ -1,11 +1,11 @@
 {
   "name": "eima",
-  "version": "0.1.5",
+  "version": "0.1.8",
   "description": "Easy to Import Multiple Assets",
   "scripts": {
     "build": "babel src --out-dir .",
     "test": "node ./index.js init",
-    "watch": "nodemon --watch src --exec \"yarn build && yarn test\""
+    "watch": "nodemon --watch src --exec \"yarn build\""
   },
   "bin": {
     "eima": "bin/index.js"
@@ -21,7 +21,9 @@
     "path": "^0.12.7",
     "prettier": "^2.4.1",
     "react": "^17.0.2",
-    "util": "^0.12.4"
+    "ryan-custom-hooks": "^1.2.3",
+    "util": "^0.12.4",
+    "yargs": "^17.2.1"
   },
   "author": {
     "name": "Ryan",
@@ -43,6 +45,7 @@
     "@babel/plugin-transform-runtime": "^7.16.0",
     "@babel/preset-env": "^7.13.8",
     "@babel/preset-react": "^7.16.0",
+    "@types/yargs": "^17.0.5",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
     "nodemon": "^2.0.7"
   },

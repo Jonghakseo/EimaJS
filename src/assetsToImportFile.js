@@ -40,7 +40,7 @@ function makeAssetFileTextEs5(
   const assetImportText =
     assetFileInfo
       .map(({ constName, filePath }) => {
-        return `var ${constName} = require("${depthPrefix}${basePath}/${filePath}");`;
+        return `var ${constName} = require("${depthPrefix}${basePath}/${filePath}")`;
       })
       .join(";\n") + ";";
 
@@ -52,7 +52,7 @@ function makeAssetFileTextEs5(
     assetImportText +
     "\n\n" +
     assetExportText +
-    `\n\nmodule.export = ${variableName};`
+    `\n\nmodule.exports = ${variableName};`
   );
 }
 
@@ -68,7 +68,7 @@ export async function updateAssetsFile(baseOption, config) {
   if (basePath) {
     const pathName = path.resolve(process.cwd(), basePath);
     try {
-      log("파일 목록을 가져오는 중...");
+      log("GETTING LIST OF FILES...");
       const fileList = await getFileList(pathName, []);
       const assetFileInfo = fileList
         .flat(Infinity)
@@ -103,7 +103,7 @@ export async function updateAssetsFile(baseOption, config) {
       }
 
       const savePath = path.resolve(process.cwd(), `${outPath}`);
-      log("에셋 import파일 생성중...");
+      log("CREATING ASSET IMPORT FILE...");
       fs.writeFileSync(savePath, assetsTsText);
       let ecmaVersion = target === ES_VERSION.ES5 ? 3 : 2015;
       const eslint = new ESLint({
@@ -115,11 +115,11 @@ export async function updateAssetsFile(baseOption, config) {
         },
       });
       const result = await eslint.lintFiles([outPath]);
-      log("eslint 실행중...");
+      log("RUNNING ESLINT...");
       await ESLint.outputFixes(result);
       log(
         basePath,
-        " - 에셋파일이 성공적으로 업데이트 되었습니다."
+        " - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED."
         // assetFileInfo
       );
     } catch (e) {
@@ -132,13 +132,13 @@ export function assetsToImportFile(baseOption, config) {
   const { assetDir, outFile, vName } = baseOption;
   // const { target } = config || {};
   if (!assetDir) {
-    return help(`asset 경로를 확인해주세요 assetDir: ${assetDir}`);
+    return help(`PLEASE CHECK THE ASSET PATH. assetDir: ${assetDir}`);
   }
   if (!outFile) {
-    return help(`out 경로를 확인해주세요 outFile: ${outFile}`);
+    return help(`PLEASE CHECK THE OUTFILE. outFile: ${outFile}`);
   }
   if (!vName) {
-    return help(`vName을 확인해주세요 vName: ${vName}`);
+    return help(`PLEASE CHECK THE VARIABLE NAME. vName: ${vName}`);
   }
   updateAssetsFile(baseOption, config)
     .then(() => {
@@ -148,14 +148,14 @@ export function assetsToImportFile(baseOption, config) {
           recursive: true,
         },
         (eventType, fileName) => {
-          const fName = fileName || "알 수 없음";
-          log(`파일 변경 감지 [${eventType} event] - ${fName}`);
+          const fName = fileName || "_UNKNOWN_";
+          log(`DETECT FILE CHANGES [${eventType} EVENT] - ${fName}`);
           updateAssetsFile(baseOption, config).catch((e) => console.error(e));
         }
       );
     })
     .catch((e) => {
-      log("파일 업데이트에서 문제가 발생했습니다.");
+      log("THERE WAS A PROBLEM UPDATING THE FILE.");
       console.error(e);
     });
 }

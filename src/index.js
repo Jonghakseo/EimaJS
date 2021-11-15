@@ -1,128 +1,157 @@
 import { makeConfigFile } from "./util";
 import { help } from "./console";
 import { CONFIG_MODE, ES_VERSION, SIMPLE_MODE } from "./constants";
+import React from "react";
 
 const { msg, log } = require("./console");
 const { assetsToImportFile } = require("./assetsToImportFile");
 
 const fs = require("fs");
 const path = require("path");
+const yargs = require("yargs");
 
-/**
- *  명령어는 경로는 1번째 인자로 받아옵니다.
- */
-const cmd = process.argv.slice(2)[0];
-const cmds = ["init", "start"];
-if (!cmd || !cmds.includes(cmd)) {
-  help("명령을 찾을 수 없습니다. Hint: eima init");
-} else if (cmd === "init") {
-  initial();
-} else if (cmd === "start") {
-  start();
-}
+yargs.version("0.1.8");
+
+yargs.command({
+  command: "init",
+  describe: "Init eima",
+  handler() {
+    // render(<InitialApp />);
+    initial();
+  },
+});
+
+yargs.command({
+  command: "start",
+  describe: "Monitor assets and reflect changes",
+  builder: {
+    assets: {
+      describe: "assets folder path",
+      demandOption: false,
+      type: "string",
+    },
+    out: {
+      describe: "assets.js file path",
+      demandOption: false,
+      type: "string",
+    },
+  },
+  handler(args) {
+    start(args.assets, args.out);
+  },
+});
+
+yargs
+  .command({
+    command: "*",
+    handler() {
+      help("Can't find command --help");
+    },
+  })
+  .demandCommand().argv;
 
 function initial() {
   const readline = require("readline");
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    terminal: true,
+    terminal: false,
   });
 
   let options = [];
-  msg(
-    "사용중인 EcmaScript 버전을 골라주세요 es5(require)/es6(import) 기본: [es6]"
-  );
-
+  msg("Please select version of ecma script: es5(require)/es6(import) [es6]");
+  let isDone = false;
   rl.on("line", function (line) {
     let input = line;
-    // msg(input);
+
     switch (options.length) {
       case 0:
         input = line || "es6";
-        options.push(input);
-        msg("(1/3) {선택} 에셋 폴더 경로를 입력해주세요. 기본: [assets]");
-        break;
+        if (input === "es6" || input === "es5") {
+          options.push(input);
+          msg("(1/3) Optional || Please enter the asset folder path. [assets]");
+          break;
+        } else {
+          msg("Error: Only 2 values(es5/es6) can be received");
+          return process.exit();
+        }
       case 1:
         input = line || "assets";
         options.push(input);
-        msg("(2/3) {선택} 내보낼 파일을 지정해주세요. 기본: [src/assets.js]");
+        msg(
+          "(2/3) Optional || Please specify the file you want to export. [src/assets.js]"
+        );
         break;
       case 2:
         input = line || "src/assets.js";
         options.push(input);
-        msg("(3/3) {선택} 내보낼 에셋 변수명을 지정해주세요. 기본: [ASSETS]");
+        msg(
+          "(3/3) Optional || Please specify the asset variable name you want to export. [ASSETS]"
+        );
         break;
       case 3:
         input = line || "ASSETS";
         options.push(input);
-        const text = `현재 설정으로 시작하시겠습니까? [Y]
-            es 타겟     : ${options[0]}
-            에셋 폴더   : ${options[1]}
-            내보낼 파일 : ${options[2]}
-            변수명      : ${options[3]}
+        const text = `Do you wanna start with the current settings? [Y/N]
+            es ver -------------- ${options[0]}
+            assets -------------- ${options[1]}
+            outPath ------------- ${options[2]}
+            variableName -------- ${options[3]}
     `;
         msg(text);
         break;
       case 4:
         if (line === "Y" || line === "y") {
-          msg("설정 완료");
+          isDone = true;
           rl.close();
         } else {
-          msg("설정 중단");
+          msg("Stop setting up");
           process.exit();
         }
         break;
     }
-    // rl.close();
   }).on("close", function () {
-    makeConfigFile(options);
-    log(
-      "에셋 폴더 설정이 완료되었습니다. 이후 에셋 폴더 감시는 eima start를 통해 시작할 수 있습니다."
-    );
-    start();
+    if (isDone) {
+      makeConfigFile(options);
+      log("Setup is complete. --> eima start");
+    }
   });
 }
 
-function start() {
-  /**
-   *  에셋 경로는 2번째 인자로 받아옵니다.
-   */
-  const assetDir = process.argv.slice(3)[0] || "assets";
-  /**
-   * 내보낼 경로는 3번째 인자로 받아옵니다.
-   */
-  const outPath = process.argv.slice(4)[0] || "assets.js";
+function start(assetDirectory, outPath) {
+  const assetDir = assetDirectory || "assets";
+  const outFile = outPath || "assets.js";
 
   const configPath = path.resolve(process.cwd(), "eima.json");
 
   let config = null;
-
   let mode = SIMPLE_MODE;
 
   try {
     config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
     if (!config.paths || config.paths.length === 0) {
-      help("eima.json 파일에서 paths 값을 확인해주세요.");
+      help("Please check paths property in eima.json");
     } else {
       mode = CONFIG_MODE;
     }
   } catch (e) {
-    // config 관련 에러인 경우 무시
+    // config 관련 에러인 경우 ignore
     if (!e.path || !e.path.includes("eima.json")) console.error(e);
   }
 
   if (mode === SIMPLE_MODE) {
-    msg(
-      "eima.json 파일을 찾을 수 없거나 읽을 수 없습니다. 심플모드로 동작합니다."
-    );
-    assetsToImportFile({ assetDir, outFile: outPath });
-  } else if (mode === CONFIG_MODE) {
-    log("eima.json 파일을 찾았습니다.");
+    msg("Could not be found or read eima.json. Operate in simple mode.");
+    assetsToImportFile({ assetDir, outFile });
+  }
+
+  if (mode === CONFIG_MODE) {
+    log("eima.json has been found.");
     const { target } = { ...config };
     if (target !== ES_VERSION.ES5 && target !== ES_VERSION.ES6) {
-      help("타겟 es 버전을 체크해주세요. (es5/es6)");
+      help(
+        "Please check the target ecma script version in eima.json. (es5/es6)"
+      );
     } else {
       if (!target) {
         config.target = ES_VERSION.ES6;

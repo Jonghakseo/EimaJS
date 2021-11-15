@@ -15,34 +15,46 @@ var _ink = require("ink");
 
 var Help = function Help(_ref) {
   var msg = _ref.msg;
-  return /*#__PURE__*/_react["default"].createElement(_ink.Text, null, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
-    color: "yellow"
-  }, "[EimaJS] : ".concat(msg)));
+  return /*#__PURE__*/_react["default"].createElement(_ink.Static, {
+    items: ["1"]
+  }, function (value) {
+    return /*#__PURE__*/_react["default"].createElement(_ink.Box, {
+      key: value
+    }, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
+      color: "yellow"
+    }, "[EIMA] : ".concat(msg)));
+  });
 };
 
 var Message = function Message(_ref2) {
   var msg = _ref2.msg;
-  return /*#__PURE__*/_react["default"].createElement(_ink.Text, null, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
-    color: "blue"
-  }, "[EimaJS] :"), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
-    color: "rgb(43,210,131)"
-  }, " ".concat(msg)));
+  return /*#__PURE__*/_react["default"].createElement(_ink.Static, {
+    items: ["2"]
+  }, function (value) {
+    return /*#__PURE__*/_react["default"].createElement(_ink.Box, {
+      key: value
+    }, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
+      color: "blue"
+    }, "[EimaJS] :"), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
+      color: "rgb(43,210,131)"
+    }, " ".concat(msg)));
+  });
 };
 
 function msg() {
   (0, _ink.render)( /*#__PURE__*/_react["default"].createElement(Message, {
     msg: Array.prototype.slice.call(arguments)
-  })); // console.info("[EimaJS] :", ...arguments);
+  })).cleanup();
 }
 
 function help() {
   (0, _ink.render)( /*#__PURE__*/_react["default"].createElement(Help, {
     msg: Array.prototype.slice.call(arguments)
-  }));
+  })).cleanup();
 }
 
 function log() {
   var _console;
 
-  (_console = console).info.apply(_console, ["[EimaJS] :"].concat(Array.prototype.slice.call(arguments)));
+  (_console = console).info.apply(_console, ["[EIMA] :"].concat(Array.prototype.slice.call(arguments)));
 }

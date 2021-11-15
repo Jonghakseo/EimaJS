@@ -2,17 +2,22 @@
 
 > Easy to Import Multiple Assets
 
-list of features
+list of commands
 - 
-- 에셋 폴더 내 파일들을 import 해주는 asset.js 생성
-- 확장자 구분
-- eslint
+- init 
+  - Easy Config
+- start 
+  - Create an asset.js that imports files from assets folder
+- help
+    - Show all commands and description   
+    
+
+### features
+- Filename extension can be distinguished
+- Auto eslint assets.js
+- (import/require) Both methods are available
 
 ### TODO
-- 사용하지 않는 asset 감지 및 삭제
-- dynamic import 지원
-- import/require 방식 es6, es5 타겟 변경(기본값 es6)
-
-###Config(eima.json)  
-- 폴더별 설정 가능
+- DETECT AND DELETE UNUSED ASSET
+- SUPPORTING DYNAMIC IMPORT
 

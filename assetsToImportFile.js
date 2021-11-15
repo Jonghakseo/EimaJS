@@ -46,13 +46,13 @@ function makeAssetFileTextEs5(assetFileInfo, depthPrefix, basePath, variableName
   var assetImportText = assetFileInfo.map(function (_ref3) {
     var constName = _ref3.constName,
         filePath = _ref3.filePath;
-    return "var ".concat(constName, " = require(\"").concat(depthPrefix).concat(basePath, "/").concat(filePath, "\");");
+    return "var ".concat(constName, " = require(\"").concat(depthPrefix).concat(basePath, "/").concat(filePath, "\")");
   }).join(";\n") + ";";
   var assetExportText = "var ".concat(variableName, " = {\n  ").concat(assetFileInfo.map(function (_ref4) {
     var constName = _ref4.constName;
     return constName;
   }).join(",\n  "), "\n};");
-  return assetImportText + "\n\n" + assetExportText + "\n\nmodule.export = ".concat(variableName, ";");
+  return assetImportText + "\n\n" + assetExportText + "\n\nmodule.exports = ".concat(variableName, ";");
 }
 
 function updateAssetsFile(_x, _x2) {
@@ -76,7 +76,7 @@ function _updateAssetsFile() {
 
             pathName = path.resolve(process.cwd(), basePath);
             _context.prev = 4;
-            log("파일 목록을 가져오는 중...");
+            log("GETTING LIST OF FILES...");
             _context.next = 8;
             return getFileList(pathName, []);
 
@@ -107,7 +107,7 @@ function _updateAssetsFile() {
             }
 
             savePath = path.resolve(process.cwd(), "".concat(outPath));
-            log("에셋 import파일 생성중...");
+            log("CREATING ASSET IMPORT FILE...");
             fs.writeFileSync(savePath, assetsTsText);
             ecmaVersion = target === _constants.ES_VERSION.ES5 ? 3 : 2015;
             eslint = new ESLint({
@@ -123,12 +123,12 @@ function _updateAssetsFile() {
 
           case 22:
             result = _context.sent;
-            log("eslint 실행중...");
+            log("RUNNING ESLINT...");
             _context.next = 26;
             return ESLint.outputFixes(result);
 
           case 26:
-            log(basePath, " - 에셋파일이 성공적으로 업데이트 되었습니다." // assetFileInfo
+            log(basePath, " - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED." // assetFileInfo
             );
             _context.next = 32;
             break;
@@ -154,29 +154,29 @@ function assetsToImportFile(baseOption, config) {
       vName = baseOption.vName; // const { target } = config || {};
 
   if (!assetDir) {
-    return (0, _console.help)("asset \uACBD\uB85C\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694 assetDir: ".concat(assetDir));
+    return (0, _console.help)("PLEASE CHECK THE ASSET PATH. assetDir: ".concat(assetDir));
   }
 
   if (!outFile) {
-    return (0, _console.help)("out \uACBD\uB85C\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694 outFile: ".concat(outFile));
+    return (0, _console.help)("PLEASE CHECK THE OUTFILE. outFile: ".concat(outFile));
   }
 
   if (!vName) {
-    return (0, _console.help)("vName\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694 vName: ".concat(vName));
+    return (0, _console.help)("PLEASE CHECK THE VARIABLE NAME. vName: ".concat(vName));
   }
 
   updateAssetsFile(baseOption, config).then(function () {
     fs.watch(assetDir, {
       recursive: true
     }, function (eventType, fileName) {
-      var fName = fileName || "알 수 없음";
-      log("\uD30C\uC77C \uBCC0\uACBD \uAC10\uC9C0 [".concat(eventType, " event] - ").concat(fName));
+      var fName = fileName || "_UNKNOWN_";
+      log("DETECT FILE CHANGES [".concat(eventType, " EVENT] - ").concat(fName));
       updateAssetsFile(baseOption, config)["catch"](function (e) {
         return console.error(e);
       });
     });
   })["catch"](function (e) {
-    log("파일 업데이트에서 문제가 발생했습니다.");
+    log("THERE WAS A PROBLEM UPDATING THE FILE.");
     console.error(e);
   });
 }
