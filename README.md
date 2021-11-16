@@ -3,22 +3,24 @@
 > Easy to Import Multiple Assets
 
 list of commands
-- 
-- init 
+
+- eima init
   - Easy Config
-- start 
+- eima start
   - Create an asset.js that imports files from assets folder
-- help
-    - Show all commands and description   
-    
+- eima help
+  - Show all commands and description
+- eima lint(alpha)
+  - Detect unused asset list
 
 ### features
+
 - Filename extension can be distinguished
 - Auto eslint assets.js
 - (import/require) Both methods are available
 - Check Asset size
 
 ### TODO
+
 - DETECT AND DELETE UNUSED ASSET
 - SUPPORTING DYNAMIC IMPORT
-

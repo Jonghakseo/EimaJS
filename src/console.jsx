@@ -16,8 +16,18 @@ const Message = ({ msg }) => (
   <Static items={["msg"]}>
     {(value) => (
       <Box key={value}>
-        <Text color="blue">[{EIMA}] :</Text>
-        <Text color="rgb(43,210,131)">{` ${msg}`}</Text>
+        <Text color="blue">[{EIMA}] : </Text>
+        <Text color="rgb(43,210,131)">{`${msg}`}</Text>
+      </Box>
+    )}
+  </Static>
+);
+
+const BoxMessage = ({ msg }) => (
+  <Static items={["box"]}>
+    {(value) => (
+      <Box key={value} borderStyle="double" paddingX={2}>
+        <Text color="rgb(43,210,131)">{`${msg}`}</Text>
       </Box>
     )}
   </Static>
@@ -33,6 +43,10 @@ const Log = ({ msg }) => (
     )}
   </Static>
 );
+
+export function box() {
+  render(<BoxMessage msg={[...arguments]} />).cleanup();
+}
 
 export function msg() {
   render(<Message msg={[...arguments]} />).cleanup();

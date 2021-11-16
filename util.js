@@ -5,24 +5,24 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.findVariablesInStream = findVariablesInStream;
+exports.getConfig = getConfig;
 exports.getFileList = getFileList;
 exports.getFileListLite = getFileListLite;
-exports.lint = lint;
-exports.makeConfigFile = makeConfigFile;
+exports.makeInitConfigFile = makeInitConfigFile;
 exports.mergeAllSourceFile = mergeAllSourceFile;
+exports.runEslint = runEslint;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var _path = _interopRequireDefault(require("path"));
 
 var _constants = require("./constants");
+
+var _console = require("./console");
 
 var _require = require("eslint"),
     ESLint = _require.ESLint;
@@ -117,100 +117,24 @@ function _getFileList() {
   return _getFileList.apply(this, arguments);
 }
 
-function makeConfigFile(_x3) {
-  return _makeConfigFile.apply(this, arguments);
-}
-
-function _makeConfigFile() {
-  _makeConfigFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(_ref) {
-    var _ref2, target, assets, out, vName, configJson, savePath;
-
-    return _regenerator["default"].wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            _ref2 = (0, _slicedToArray2["default"])(_ref, 4), target = _ref2[0], assets = _ref2[1], out = _ref2[2], vName = _ref2[3];
-            configJson = {
-              target: target,
-              hideSize: false,
-              paths: [{
-                assets: assets,
-                out: out,
-                vName: vName
-              }]
-            };
-            savePath = _path["default"].resolve(process.cwd(), "eima.json");
-            fs.writeFileSync(savePath, JSON.stringify(configJson));
-
-          case 4:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _makeConfigFile.apply(this, arguments);
-}
-
-function lint(_x4) {
-  return _lint.apply(this, arguments);
-}
-
-function _lint() {
-  _lint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(outPath) {
-    var ecmaVersion,
-        eslint,
-        result,
-        _args3 = arguments;
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            ecmaVersion = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : 2015;
-            eslint = new ESLint({
-              fix: true,
-              overrideConfig: {
-                parserOptions: {
-                  ecmaVersion: ecmaVersion
-                }
-              }
-            });
-            _context3.next = 4;
-            return eslint.lintFiles([outPath]);
-
-          case 4:
-            result = _context3.sent;
-            _context3.next = 7;
-            return ESLint.outputFixes(result);
-
-          case 7:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-  return _lint.apply(this, arguments);
-}
-
-function getFileListLite(_x5, _x6) {
+function getFileListLite(_x3, _x4) {
   return _getFileListLite.apply(this, arguments);
 }
 
 function _getFileListLite() {
-  _getFileListLite = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(pathname, prefix) {
+  _getFileListLite = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(pathname, prefix) {
     var targetPath, fileNames;
-    return _regenerator["default"].wrap(function _callee4$(_context4) {
+    return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context2.prev = _context2.next) {
           case 0:
             targetPath = prefix ? "".concat(pathname, "/").concat(prefix.join("/")) : pathname;
-            _context4.next = 3;
+            _context2.next = 3;
             return readdir(targetPath);
 
           case 3:
-            fileNames = _context4.sent;
-            return _context4.abrupt("return", Promise.all(fileNames.map(function (name) {
+            fileNames = _context2.sent;
+            return _context2.abrupt("return", Promise.all(fileNames.map(function (name) {
               var fullFilePath = _path["default"].resolve(targetPath, name);
 
               var fileStat = fs.statSync(fullFilePath);
@@ -236,12 +160,87 @@ function _getFileListLite() {
 
           case 5:
           case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _getFileListLite.apply(this, arguments);
+}
+
+function makeInitConfigFile(_x5, _x6, _x7, _x8) {
+  return _makeInitConfigFile.apply(this, arguments);
+}
+
+function _makeInitConfigFile() {
+  _makeInitConfigFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(target, assets, out, vName) {
+    var configJson, savePath;
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            configJson = {
+              target: target,
+              hideSize: false,
+              lintPath: "src",
+              paths: [{
+                assets: assets,
+                out: out,
+                vName: vName
+              }]
+            };
+            savePath = _path["default"].resolve(process.cwd(), "eima.json");
+            fs.writeFileSync(savePath, JSON.stringify(configJson));
+
+          case 3:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+  return _makeInitConfigFile.apply(this, arguments);
+}
+
+function runEslint(_x9) {
+  return _runEslint.apply(this, arguments);
+}
+
+function _runEslint() {
+  _runEslint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(outPath) {
+    var ecmaVersion,
+        eslint,
+        result,
+        _args4 = arguments;
+    return _regenerator["default"].wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            ecmaVersion = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : 2015;
+            eslint = new ESLint({
+              fix: true,
+              overrideConfig: {
+                parserOptions: {
+                  ecmaVersion: ecmaVersion
+                }
+              }
+            });
+            _context4.next = 4;
+            return eslint.lintFiles([outPath]);
+
+          case 4:
+            result = _context4.sent;
+            _context4.next = 7;
+            return ESLint.outputFixes(result);
+
+          case 7:
+          case "end":
             return _context4.stop();
         }
       }
     }, _callee4);
   }));
-  return _getFileListLite.apply(this, arguments);
+  return _runEslint.apply(this, arguments);
 }
 
 function mergeAllSourceFile(files, cb) {
@@ -252,10 +251,8 @@ function mergeAllSourceFile(files, cb) {
       if (err) {
         console.error(err);
       } else {
-        console.log(data.indexOf(_constants.EIMA_ASSET_EXPORT_FILE));
-
-        if (data.indexOf(_constants.EIMA_ASSET_EXPORT_FILE) !== -1) {// 에셋파일 -> 제외
-        } else {
+        if (data.indexOf(_constants.EIMA_ASSET_EXPORT_FILE) === -1) {
+          // 에셋파일 -> 제외
           stream += data;
         }
 
@@ -269,4 +266,23 @@ function mergeAllSourceFile(files, cb) {
   });
 }
 
-function findVariablesInStream(source) {}
+function getConfig() {
+  var configPath = _path["default"].resolve(process.cwd(), "eima.json");
+
+  var config = null;
+
+  try {
+    var configJson = JSON.parse(fs.readFileSync(configPath, "utf8"));
+
+    if (!configJson.paths || configJson.paths.length === 0) {
+      (0, _console.help)("Please check paths property in eima.json");
+    } else {
+      config = configJson;
+    }
+  } catch (e) {
+    // config 관련 에러인 경우 ignore
+    if (!e.path || !e.path.includes("eima.json")) console.error(e);
+  }
+
+  return config;
+}

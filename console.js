@@ -5,6 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.box = box;
 exports.help = help;
 exports.log = log;
 exports.msg = msg;
@@ -37,14 +38,29 @@ var Message = function Message(_ref2) {
       key: value
     }, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
       color: "blue"
-    }, "[", _constants.EIMA, "] :"), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
+    }, "[", _constants.EIMA, "] : "), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
       color: "rgb(43,210,131)"
-    }, " ".concat(msg)));
+    }, "".concat(msg)));
   });
 };
 
-var Log = function Log(_ref3) {
+var BoxMessage = function BoxMessage(_ref3) {
   var msg = _ref3.msg;
+  return /*#__PURE__*/_react["default"].createElement(_ink.Static, {
+    items: ["box"]
+  }, function (value) {
+    return /*#__PURE__*/_react["default"].createElement(_ink.Box, {
+      key: value,
+      borderStyle: "double",
+      paddingX: 2
+    }, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
+      color: "rgb(43,210,131)"
+    }, "".concat(msg)));
+  });
+};
+
+var Log = function Log(_ref4) {
+  var msg = _ref4.msg;
   return /*#__PURE__*/_react["default"].createElement(_ink.Static, {
     items: ["log"]
   }, function (value) {
@@ -58,6 +74,12 @@ var Log = function Log(_ref3) {
     }, " ".concat(msg)));
   });
 };
+
+function box() {
+  (0, _ink.render)( /*#__PURE__*/_react["default"].createElement(BoxMessage, {
+    msg: Array.prototype.slice.call(arguments)
+  })).cleanup();
+}
 
 function msg() {
   (0, _ink.render)( /*#__PURE__*/_react["default"].createElement(Message, {

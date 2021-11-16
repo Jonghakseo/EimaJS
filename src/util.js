@@ -1,5 +1,6 @@
 import path from "path";
-import { EIMA_ASSET_EXPORT_FILE } from "./constants";
+import { CONFIG_MODE, EIMA_ASSET_EXPORT_FILE } from "./constants";
+import { help } from "./console";
 const { ESLint } = require("eslint");
 const fs = require("fs");
 const util = require("util");
@@ -63,35 +64,6 @@ export async function getFileList(pathname, prefix) {
   );
 }
 
-export async function makeConfigFile([target, assets, out, vName]) {
-  const configJson = {
-    target,
-    hideSize: false,
-    paths: [
-      {
-        assets,
-        out,
-        vName,
-      },
-    ],
-  };
-  const savePath = path.resolve(process.cwd(), `eima.json`);
-  fs.writeFileSync(savePath, JSON.stringify(configJson));
-}
-
-export async function lint(outPath, ecmaVersion = 2015) {
-  const eslint = new ESLint({
-    fix: true,
-    overrideConfig: {
-      parserOptions: {
-        ecmaVersion: ecmaVersion,
-      },
-    },
-  });
-  const result = await eslint.lintFiles([outPath]);
-  await ESLint.outputFixes(result);
-}
-
 export async function getFileListLite(pathname, prefix) {
   const targetPath = prefix ? `${pathname}/${prefix.join("/")}` : pathname;
 
@@ -120,6 +92,36 @@ export async function getFileListLite(pathname, prefix) {
   );
 }
 
+export async function makeInitConfigFile(target, assets, out, vName) {
+  const configJson = {
+    target,
+    hideSize: false,
+    lintPath: "src",
+    paths: [
+      {
+        assets,
+        out,
+        vName,
+      },
+    ],
+  };
+  const savePath = path.resolve(process.cwd(), `eima.json`);
+  fs.writeFileSync(savePath, JSON.stringify(configJson));
+}
+
+export async function runEslint(outPath, ecmaVersion = 2015) {
+  const eslint = new ESLint({
+    fix: true,
+    overrideConfig: {
+      parserOptions: {
+        ecmaVersion: ecmaVersion,
+      },
+    },
+  });
+  const result = await eslint.lintFiles([outPath]);
+  await ESLint.outputFixes(result);
+}
+
 export function mergeAllSourceFile(files, cb) {
   let stream = "";
   let count = 0;
@@ -128,10 +130,8 @@ export function mergeAllSourceFile(files, cb) {
       if (err) {
         console.error(err);
       } else {
-        console.log(data.indexOf(EIMA_ASSET_EXPORT_FILE));
-        if (data.indexOf(EIMA_ASSET_EXPORT_FILE) !== -1) {
+        if (data.indexOf(EIMA_ASSET_EXPORT_FILE) === -1) {
           // 에셋파일 -> 제외
-        } else {
           stream += data;
         }
         count += 1;
@@ -143,4 +143,20 @@ export function mergeAllSourceFile(files, cb) {
   });
 }
 
-export function findVariablesInStream(source) {}
+export function getConfig() {
+  const configPath = path.resolve(process.cwd(), "eima.json");
+  let config = null;
+  try {
+    let configJson = JSON.parse(fs.readFileSync(configPath, "utf8"));
+
+    if (!configJson.paths || configJson.paths.length === 0) {
+      help("Please check paths property in eima.json");
+    } else {
+      config = configJson;
+    }
+  } catch (e) {
+    // config 관련 에러인 경우 ignore
+    if (!e.path || !e.path.includes("eima.json")) console.error(e);
+  }
+  return config;
+}

@@ -1,6 +1,6 @@
 import { help } from "./console";
 import { EIMA_ASSET_EXPORT_FILE, ES_VERSION } from "./constants";
-import { lint } from "./util";
+import { runEslint } from "./util";
 const fs = require("fs");
 const path = require("path");
 const { getFileList } = require("./util");
@@ -75,14 +75,13 @@ function makeAssetFileTextEs5({
   );
 }
 
-export async function updateAssetsFile(baseOption, config) {
+export async function updateAssetsFile(pathAndConfig) {
   const {
-    assetDir: basePath,
-    outFile: outPath,
+    assets: basePath,
+    out: outPath,
     vName: variableName,
-  } = baseOption;
-
-  const { target } = config;
+    target,
+  } = pathAndConfig;
 
   const pathName = path.resolve(process.cwd(), basePath);
   // ? 파일 목록 재귀로 가져옴
@@ -107,7 +106,7 @@ export async function updateAssetsFile(baseOption, config) {
   }
 
   const material = {
-    config,
+    config: pathAndConfig,
     assetFileInfo,
     depthPrefix,
     basePath,
@@ -121,34 +120,36 @@ export async function updateAssetsFile(baseOption, config) {
 
   log("RUNNING ESLINT...");
   let ecmaVersion = target === ES_VERSION.ES5 ? 3 : 2015;
-  await lint(outPath, ecmaVersion);
+  await runEslint(outPath, ecmaVersion);
 
   log(`${basePath} - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED.`);
 }
 
-export function assetsToImportFile(baseOption, config) {
-  const { assetDir, outFile, vName } = baseOption;
-  // const { target } = config || {};
-  if (!assetDir) {
-    return help(`PLEASE CHECK THE ASSET PATH. assetDir: ${assetDir}`);
+export function assetsToImportFile(path, config) {
+  const { assets, out, vName } = path;
+
+  if (!assets) {
+    return help(`PLEASE CHECK THE ASSET PATH. assets: ${assets}`);
   }
-  if (!outFile) {
-    return help(`PLEASE CHECK THE OUTFILE. outFile: ${outFile}`);
+  if (!out) {
+    return help(`PLEASE CHECK THE OUTFILE. out: ${out}`);
   }
   if (!vName) {
     return help(`PLEASE CHECK THE VARIABLE NAME. vName: ${vName}`);
   }
-  updateAssetsFile(baseOption, config)
+  updateAssetsFile({ ...path, ...config })
     .then(() => {
       fs.watch(
-        assetDir,
+        assets,
         {
           recursive: true,
         },
         (eventType, fileName) => {
           const fName = fileName || "_UNKNOWN_";
           log(`DETECT FILE CHANGES [${eventType} EVENT] - ${fName}`);
-          updateAssetsFile(baseOption, config).catch((e) => console.error(e));
+          updateAssetsFile({ ...path, ...config }).catch((e) =>
+            console.error(e)
+          );
         }
       );
     })
