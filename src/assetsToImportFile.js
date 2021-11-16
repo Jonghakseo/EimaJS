@@ -1,6 +1,6 @@
 import { help } from "./console";
-import { ES_VERSION } from "./constants";
-const { ESLint } = require("eslint");
+import { EIMA_ASSET_EXPORT_FILE, ES_VERSION } from "./constants";
+import { lint } from "./util";
 const fs = require("fs");
 const path = require("path");
 const { getFileList } = require("./util");
@@ -10,12 +10,15 @@ function makeAssetFileText(material) {
   const {
     config: { target },
   } = material;
+  const prefix = `// ${EIMA_ASSET_EXPORT_FILE}\n`;
+  let assetText = "";
   if (target === ES_VERSION.ES5) {
-    return makeAssetFileTextEs5(material);
+    assetText = makeAssetFileTextEs5(material);
   }
   if (target === ES_VERSION.ES6) {
-    return makeAssetFileTextEs6(material);
+    assetText = makeAssetFileTextEs6(material);
   }
+  return prefix + assetText;
 }
 
 function makeAssetFileTextEs6({
@@ -112,23 +115,13 @@ export async function updateAssetsFile(baseOption, config) {
   };
   let assetsTsText = makeAssetFileText(material);
 
-  const savePath = path.resolve(process.cwd(), `${outPath}`);
-
   log("CREATING ASSET IMPORT FILE...");
+  const savePath = path.resolve(process.cwd(), `${outPath}`);
   fs.writeFileSync(savePath, assetsTsText);
 
-  let ecmaVersion = target === ES_VERSION.ES5 ? 3 : 2015;
-  const eslint = new ESLint({
-    fix: true,
-    overrideConfig: {
-      parserOptions: {
-        ecmaVersion: ecmaVersion,
-      },
-    },
-  });
   log("RUNNING ESLINT...");
-  const result = await eslint.lintFiles([outPath]);
-  await ESLint.outputFixes(result);
+  let ecmaVersion = target === ES_VERSION.ES5 ? 3 : 2015;
+  await lint(outPath, ecmaVersion);
 
   log(`${basePath} - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED.`);
 }

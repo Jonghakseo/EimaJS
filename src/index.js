@@ -1,4 +1,4 @@
-import { makeConfigFile } from "./util";
+import { mergeAllSourceFile, getFileListLite, makeConfigFile } from "./util";
 import { help } from "./console";
 import { CONFIG_MODE, ES_VERSION, SIMPLE_MODE } from "./constants";
 import React from "react";
@@ -38,6 +38,14 @@ yargs.command({
   },
   handler(args) {
     start(args.assets, args.out);
+  },
+});
+
+yargs.command({
+  command: "lint",
+  describe: "Check unused asset variables",
+  handler() {
+    lint();
   },
 });
 
@@ -110,10 +118,14 @@ function initial() {
         }
         break;
     }
-  }).on("close", function () {
+  }).on("close", async function () {
     if (isDone) {
-      makeConfigFile(options);
-      log("Setup is complete. --> eima start");
+      try {
+        await makeConfigFile(options);
+        log("Setup is complete. --> eima start");
+      } catch (e) {
+        console.error(e);
+      }
     }
   });
 }
@@ -161,4 +173,13 @@ function start(assetDirectory, outPath) {
       });
     }
   }
+}
+
+async function lint() {
+  // const assetVariableList =
+  const fileLists = await getFileListLite(__dirname, ["test"]);
+  const filePaths = fileLists.filter(Boolean).flat(Infinity);
+  mergeAllSourceFile(filePaths, (stream) => {
+    console.log(stream);
+  });
 }

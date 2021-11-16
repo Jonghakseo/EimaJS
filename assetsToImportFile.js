@@ -16,29 +16,32 @@ var _console = require("./console");
 
 var _constants = require("./constants");
 
-var _require = require("eslint"),
-    ESLint = _require.ESLint;
+var _util = require("./util");
 
 var fs = require("fs");
 
 var path = require("path");
 
-var _require2 = require("./util"),
-    getFileList = _require2.getFileList;
+var _require = require("./util"),
+    getFileList = _require.getFileList;
 
-var _require3 = require("./console"),
-    log = _require3.log;
+var _require2 = require("./console"),
+    log = _require2.log;
 
 function makeAssetFileText(material) {
   var target = material.config.target;
+  var prefix = "// ".concat(_constants.EIMA_ASSET_EXPORT_FILE, "\n");
+  var assetText = "";
 
   if (target === _constants.ES_VERSION.ES5) {
-    return makeAssetFileTextEs5(material);
+    assetText = makeAssetFileTextEs5(material);
   }
 
   if (target === _constants.ES_VERSION.ES6) {
-    return makeAssetFileTextEs6(material);
+    assetText = makeAssetFileTextEs6(material);
   }
+
+  return prefix + assetText;
 }
 
 function makeAssetFileTextEs6(_ref) {
@@ -89,7 +92,7 @@ function updateAssetsFile(_x, _x2) {
 
 function _updateAssetsFile() {
   _updateAssetsFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(baseOption, config) {
-    var basePath, outPath, variableName, target, pathName, fileList, assetFileInfo, regexp, outPathDepth, depthPrefix, i, material, assetsTsText, savePath, ecmaVersion, eslint, result;
+    var basePath, outPath, variableName, target, pathName, fileList, assetFileInfo, regexp, outPathDepth, depthPrefix, i, material, assetsTsText, savePath, ecmaVersion;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -133,31 +136,18 @@ function _updateAssetsFile() {
               variableName: variableName
             };
             assetsTsText = makeAssetFileText(material);
-            savePath = path.resolve(process.cwd(), "".concat(outPath));
             log("CREATING ASSET IMPORT FILE...");
+            savePath = path.resolve(process.cwd(), "".concat(outPath));
             fs.writeFileSync(savePath, assetsTsText);
-            ecmaVersion = target === _constants.ES_VERSION.ES5 ? 3 : 2015;
-            eslint = new ESLint({
-              fix: true,
-              overrideConfig: {
-                parserOptions: {
-                  ecmaVersion: ecmaVersion
-                }
-              }
-            });
             log("RUNNING ESLINT...");
-            _context.next = 22;
-            return eslint.lintFiles([outPath]);
+            ecmaVersion = target === _constants.ES_VERSION.ES5 ? 3 : 2015;
+            _context.next = 21;
+            return (0, _util.lint)(outPath, ecmaVersion);
 
-          case 22:
-            result = _context.sent;
-            _context.next = 25;
-            return ESLint.outputFixes(result);
-
-          case 25:
+          case 21:
             log("".concat(basePath, " - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED."));
 
-          case 26:
+          case 22:
           case "end":
             return _context.stop();
         }

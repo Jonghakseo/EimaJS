@@ -1,1 +1,1 @@
-{"target":"es6","hideSize":true,"paths":[{"assets":"test/assets","out":"src/assets.js","vName":"others"}]}
+{"target":"es6","hideSize":false,"paths":[{"assets":"test/assets","out":"test/constants/assets.js","vName":"ASSETS"}]}

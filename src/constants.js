@@ -7,3 +7,6 @@ export const ES_VERSION = {
   ES5: "es5",
   ES6: "es6",
 };
+
+export const EIMA = "EIMA";
+export const EIMA_ASSET_EXPORT_FILE = "EIMA ASSET EXPORT FILE";

@@ -13,6 +13,8 @@ var _react = _interopRequireDefault(require("react"));
 
 var _ink = require("ink");
 
+var _constants = require("./constants");
+
 var Help = function Help(_ref) {
   var msg = _ref.msg;
   return /*#__PURE__*/_react["default"].createElement(_ink.Static, {
@@ -22,7 +24,7 @@ var Help = function Help(_ref) {
       key: value
     }, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
       color: "yellow"
-    }, "[EIMA] : ".concat(msg)));
+    }, "[".concat(_constants.EIMA, "] : ").concat(msg)));
   });
 };
 
@@ -35,7 +37,7 @@ var Message = function Message(_ref2) {
       key: value
     }, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
       color: "blue"
-    }, "[EIMA] :"), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
+    }, "[", _constants.EIMA, "] :"), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
       color: "rgb(43,210,131)"
     }, " ".concat(msg)));
   });
@@ -50,7 +52,7 @@ var Log = function Log(_ref3) {
       key: value
     }, /*#__PURE__*/_react["default"].createElement(_ink.Text, {
       color: "grey"
-    }, "[EIMA] :"), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
+    }, "[", _constants.EIMA, "] :"), /*#__PURE__*/_react["default"].createElement(_ink.Text, {
       color: "yellow",
       dimColor: true
     }, " ".concat(msg)));
@@ -72,5 +74,5 @@ function help() {
 function log() {
   (0, _ink.render)( /*#__PURE__*/_react["default"].createElement(Log, {
     msg: Array.prototype.slice.call(arguments)
-  })).cleanup(); // console.info("[EIMA] :", ...arguments);
+  })).cleanup();
 }

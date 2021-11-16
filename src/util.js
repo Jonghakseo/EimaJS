@@ -1,5 +1,6 @@
 import path from "path";
-
+import { EIMA_ASSET_EXPORT_FILE } from "./constants";
+const { ESLint } = require("eslint");
 const fs = require("fs");
 const util = require("util");
 
@@ -15,21 +16,21 @@ export async function getFileList(pathname, prefix) {
   // ? 찾은 모든 파일에 대해 병렬적으로 프로세스 실행
   return Promise.all(
     fileNames.map((name) => {
+      const fullFilePath = path.resolve(targetPath, name);
+      const fileStat = fs.statSync(fullFilePath);
       // ? 폴더인 경우 재귀 탐색
-      if (checkIsFolder(name)) {
+      if (fileStat.isDirectory()) {
         return getFileList(pathname, [...prefix, name]);
       }
       // ? 파일인 경우
-      if (checkIsFile(name)) {
+      if (fileStat.isFile()) {
         // ? 상수명 (.) dot split
         let CONSTANTS_NAME = name.toUpperCase().split(".")[0];
         // ? 확장자
         const ext = path.extname(name).slice(1);
         // ? 용량 kb
         let unit = "kb";
-        let size = Math.round(
-          fs.statSync(path.resolve(targetPath, name)).size / 1024
-        );
+        let size = Math.round(fileStat.size / 1024);
         if (size > 1024) {
           size = Math.round(size / 102.4) / 10;
           unit = "mb";
@@ -62,15 +63,7 @@ export async function getFileList(pathname, prefix) {
   );
 }
 
-export function checkIsFolder(fileName) {
-  return fileName.indexOf(".") === -1;
-}
-
-export function checkIsFile(fileName) {
-  return fileName.indexOf(".") > 0;
-}
-
-export function makeConfigFile([target, assets, out, vName]) {
+export async function makeConfigFile([target, assets, out, vName]) {
   const configJson = {
     target,
     hideSize: false,
@@ -85,3 +78,69 @@ export function makeConfigFile([target, assets, out, vName]) {
   const savePath = path.resolve(process.cwd(), `eima.json`);
   fs.writeFileSync(savePath, JSON.stringify(configJson));
 }
+
+export async function lint(outPath, ecmaVersion = 2015) {
+  const eslint = new ESLint({
+    fix: true,
+    overrideConfig: {
+      parserOptions: {
+        ecmaVersion: ecmaVersion,
+      },
+    },
+  });
+  const result = await eslint.lintFiles([outPath]);
+  await ESLint.outputFixes(result);
+}
+
+export async function getFileListLite(pathname, prefix) {
+  const targetPath = prefix ? `${pathname}/${prefix.join("/")}` : pathname;
+
+  const fileNames = await readdir(targetPath);
+
+  return Promise.all(
+    fileNames.map((name) => {
+      const fullFilePath = path.resolve(targetPath, name);
+      const fileStat = fs.statSync(fullFilePath);
+      if (fileStat.isDirectory()) {
+        return getFileListLite(pathname, [...prefix, name]);
+      }
+      if (fileStat.isFile()) {
+        let filePath = name;
+
+        if (prefix.length > 0) {
+          filePath = `${prefix.join("/")}/${name}`;
+        }
+        return new Promise(function (resolve) {
+          resolve(filePath);
+        });
+      } else {
+        return null;
+      }
+    })
+  );
+}
+
+export function mergeAllSourceFile(files, cb) {
+  let stream = "";
+  let count = 0;
+  files.forEach((fileName) => {
+    fs.readFile(fileName, "utf-8", (err, data) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log(data.indexOf(EIMA_ASSET_EXPORT_FILE));
+        if (data.indexOf(EIMA_ASSET_EXPORT_FILE) !== -1) {
+          // 에셋파일 -> 제외
+        } else {
+          stream += data;
+        }
+        count += 1;
+        if (count === files.length) {
+          cb(stream);
+        }
+      }
+    });
+  });
+}
+
+export function findVariablesInStream(source) {}
