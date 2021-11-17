@@ -1,7 +1,9 @@
-import { help } from "./console";
 import React from "react";
-import { eimaInit, eimaLint, eimaStart } from "./core";
-const yargs = require("yargs");
+import yargs from "yargs";
+import { help } from "./ink";
+import { eimaInit } from "./init";
+import { eimaStart } from "./start";
+import { eimaLint } from "./lint";
 
 yargs.help("help").alias("h", "help");
 yargs.version("0.2.0").alias("v", "version");
@@ -24,7 +26,7 @@ yargs.command({
 
 yargs.command({
   command: "lint",
-  desc: "Check unused asset variables. Use with -p ${target path}",
+  describe: "Check unused asset variables. Use with -p ${target path}",
   builder: {
     path: {
       alias: "p",
@@ -33,8 +35,8 @@ yargs.command({
       type: "string",
     },
   },
-  handler(args) {
-    eimaLint(args.path);
+  handler({ path }) {
+    void eimaLint(path);
   },
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "eima",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Easy to Import Multiple Assets",
   "scripts": {
     "build": "babel src --out-dir .",

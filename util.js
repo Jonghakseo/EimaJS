@@ -5,13 +5,13 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.assetLint = assetLint;
+exports.createConfigFile = createConfigFile;
+exports.fixEslint = fixEslint;
 exports.getConfig = getConfig;
 exports.getFileList = getFileList;
-exports.getFileListLite = getFileListLite;
-exports.makeInitConfigFile = makeInitConfigFile;
+exports.getFilePathList = getFilePathList;
+exports.getLineInput = getLineInput;
 exports.mergeAllSourceFile = mergeAllSourceFile;
-exports.runEslint = runEslint;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
@@ -19,27 +19,36 @@ var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _path2 = _interopRequireDefault(require("path"));
+var _path = _interopRequireDefault(require("path"));
+
+var _fs = _interopRequireDefault(require("fs"));
+
+var _util = _interopRequireDefault(require("util"));
+
+var _readline = _interopRequireDefault(require("readline"));
 
 var _constants = require("./constants");
 
-var _console = require("./console");
+var _ink = require("./ink");
 
-var _require = require("eslint"),
-    ESLint = _require.ESLint;
+var _eslint = require("eslint");
 
-var fs = require("fs");
+function getLineInput(lineCb) {
+  var rl = _readline["default"].createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false
+  });
 
-var util = require("util");
-
-var hashCode = function hashCode(s) {
-  return s.split("").reduce(function (a, b) {
-    return (a << 5) - a + b.charCodeAt(0) | 0;
-  }, 0);
-}; // ? fs의 readDir 메소드를 promisify 하게 wrapping 합니다.
+  rl.on("line", function (line) {
+    rl.close();
+    lineCb(line);
+  });
+} // ? fs의 readDir 메소드를 promisify 하게 wrapping 합니다.
 
 
-var readdir = util.promisify(fs.readdir); // ? file List를 파싱합니다.
+var readdir = _util["default"].promisify(_fs["default"].readdir); // ? file List를 파싱합니다.
+
 
 function getFileList(_x, _x2) {
   return _getFileList.apply(this, arguments);
@@ -60,9 +69,10 @@ function _getFileList() {
           case 3:
             fileNames = _context.sent;
             return _context.abrupt("return", Promise.all(fileNames.map(function (name) {
-              var fullFilePath = _path2["default"].resolve(targetPath, name);
+              var fullFilePath = _path["default"].resolve(targetPath, name);
 
-              var fileStat = fs.statSync(fullFilePath); // ? 폴더인 경우 재귀 탐색
+              var fileStat = _fs["default"].statSync(fullFilePath); // ? 폴더인 경우 재귀 탐색
+
 
               // ? 폴더인 경우 재귀 탐색
               if (fileStat.isDirectory()) {
@@ -73,10 +83,16 @@ function _getFileList() {
               // ? 파일인 경우
               if (fileStat.isFile()) {
                 // ? 상수명 (.) dot split
-                var CONSTANTS_NAME = name.toUpperCase().split(".")[0]; // ? 확장자
+                var CONSTANTS_NAME = name.toUpperCase().split(".")[0]; // ? 숫자로 시작하는 파일명 캇트
+
+                // ? 숫자로 시작하는 파일명 캇트
+                if (CONSTANTS_NAME.substr(0, 1).match(new RegExp("^[0-9]"))) {
+                  throw new Error("[".concat(_constants.EIMA, "] A NUMBER CANNOT BE AT THE BEGINNING OF THE FILE NAME."));
+                } // ? 확장자
+
 
                 // ? 확장자
-                var ext = _path2["default"].extname(name).slice(1); // ? 용량 kb
+                var ext = _path["default"].extname(name).slice(1); // ? 용량 kb
 
 
                 // ? 용량 kb
@@ -108,7 +124,8 @@ function _getFileList() {
                     ext: ext,
                     filePath: filePath,
                     size: "".concat(size).concat(unit),
-                    rawSize: rawSize
+                    _fullFilePath: fullFilePath,
+                    _rawSize: rawSize
                   });
                 });
               } else {
@@ -126,12 +143,12 @@ function _getFileList() {
   return _getFileList.apply(this, arguments);
 }
 
-function getFileListLite(_x3, _x4) {
-  return _getFileListLite.apply(this, arguments);
+function getFilePathList(_x3, _x4) {
+  return _getFilePathList.apply(this, arguments);
 }
 
-function _getFileListLite() {
-  _getFileListLite = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(pathname, prefix) {
+function _getFilePathList() {
+  _getFilePathList = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(pathname, prefix) {
     var targetPath, fileNames;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) {
@@ -144,12 +161,12 @@ function _getFileListLite() {
           case 3:
             fileNames = _context2.sent;
             return _context2.abrupt("return", Promise.all(fileNames.map(function (name) {
-              var fullFilePath = _path2["default"].resolve(targetPath, name);
+              var fullFilePath = _path["default"].resolve(targetPath, name);
 
-              var fileStat = fs.statSync(fullFilePath);
+              var fileStat = _fs["default"].statSync(fullFilePath);
 
               if (fileStat.isDirectory()) {
-                return getFileListLite(pathname, [].concat((0, _toConsumableArray2["default"])(prefix), [name]));
+                return getFilePathList(pathname, [].concat((0, _toConsumableArray2["default"])(prefix), [name]));
               }
 
               if (fileStat.isFile()) {
@@ -174,15 +191,15 @@ function _getFileListLite() {
       }
     }, _callee2);
   }));
-  return _getFileListLite.apply(this, arguments);
+  return _getFilePathList.apply(this, arguments);
 }
 
-function makeInitConfigFile(_x5, _x6, _x7, _x8) {
-  return _makeInitConfigFile.apply(this, arguments);
+function createConfigFile(_x5, _x6, _x7, _x8) {
+  return _createConfigFile.apply(this, arguments);
 }
 
-function _makeInitConfigFile() {
-  _makeInitConfigFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(target, assets, out, vName) {
+function _createConfigFile() {
+  _createConfigFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(target, assets, out, vName) {
     var configJson, savePath;
     return _regenerator["default"].wrap(function _callee3$(_context3) {
       while (1) {
@@ -198,8 +215,9 @@ function _makeInitConfigFile() {
                 vName: vName
               }]
             };
-            savePath = _path2["default"].resolve(process.cwd(), "eima.json");
-            fs.writeFileSync(savePath, JSON.stringify(configJson));
+            savePath = _path["default"].resolve(process.cwd(), "eima.json");
+
+            _fs["default"].writeFileSync(savePath, JSON.stringify(configJson));
 
           case 3:
           case "end":
@@ -208,15 +226,15 @@ function _makeInitConfigFile() {
       }
     }, _callee3);
   }));
-  return _makeInitConfigFile.apply(this, arguments);
+  return _createConfigFile.apply(this, arguments);
 }
 
-function runEslint(_x9) {
-  return _runEslint.apply(this, arguments);
+function fixEslint(_x9) {
+  return _fixEslint.apply(this, arguments);
 }
 
-function _runEslint() {
-  _runEslint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(outPath) {
+function _fixEslint() {
+  _fixEslint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(outPath) {
     var ecmaVersion,
         eslint,
         result,
@@ -226,7 +244,7 @@ function _runEslint() {
         switch (_context4.prev = _context4.next) {
           case 0:
             ecmaVersion = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : 2015;
-            eslint = new ESLint({
+            eslint = new _eslint.ESLint({
               fix: true,
               overrideConfig: {
                 parserOptions: {
@@ -240,7 +258,7 @@ function _runEslint() {
           case 4:
             result = _context4.sent;
             _context4.next = 7;
-            return ESLint.outputFixes(result);
+            return _eslint.ESLint.outputFixes(result);
 
           case 7:
           case "end":
@@ -249,16 +267,16 @@ function _runEslint() {
       }
     }, _callee4);
   }));
-  return _runEslint.apply(this, arguments);
+  return _fixEslint.apply(this, arguments);
 }
 
 function mergeAllSourceFile(path, files, cb) {
   var stream = "";
   var count = 0;
   files.forEach(function (fileName) {
-    fs.readFile("".concat(path).concat(fileName), "utf-8", function (err, data) {
+    _fs["default"].readFile("".concat(path).concat(fileName), "utf-8", function (err, data) {
       if (err) {
-        console.error(err);
+        throw err;
       } else {
         if (data.indexOf(_constants.EIMA_ASSET_EXPORT_FILE) === -1) {
           // 에셋파일 -> 제외
@@ -276,15 +294,15 @@ function mergeAllSourceFile(path, files, cb) {
 }
 
 function getConfig() {
-  var configPath = _path2["default"].resolve(process.cwd(), "eima.json");
+  var configPath = _path["default"].resolve(process.cwd(), "eima.json");
 
   var config = null;
 
   try {
-    var configJson = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    var configJson = JSON.parse(_fs["default"].readFileSync(configPath, "utf8"));
 
     if (!configJson.paths || configJson.paths.length === 0) {
-      (0, _console.help)("Please check paths property in eima.json");
+      (0, _ink.help)("Please check paths property in eima.json");
     } else {
       config = configJson;
     }
@@ -294,102 +312,4 @@ function getConfig() {
   }
 
   return config;
-}
-
-function assetLint(_x10) {
-  return _assetLint.apply(this, arguments);
-}
-
-function _assetLint() {
-  _assetLint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(path) {
-    var config, fileListPromise, importNames, _path, fileLists, filePaths;
-
-    return _regenerator["default"].wrap(function _callee5$(_context5) {
-      while (1) {
-        switch (_context5.prev = _context5.next) {
-          case 0:
-            config = getConfig();
-
-            if (!config || config.paths.length === 0) {
-              (0, _console.err)("Please Check eima.json");
-              process.exit();
-            }
-
-            if (!config.lintPath && !path) {
-              (0, _console.err)("The Lint Feature Requires The Folder Path You Want To Search To. Please Check lintPath in eima.json or -p [path] argument");
-              process.exit();
-            }
-
-            _context5.prev = 3;
-            _context5.next = 6;
-            return Promise.all(config.paths.map(function (_ref) {
-              var assets = _ref.assets;
-              return getFileList(assets, []);
-            }));
-
-          case 6:
-            fileListPromise = _context5.sent;
-            importNames = fileListPromise.flat(Infinity).map(function (_ref2) {
-              var name = _ref2.name,
-                  ext = _ref2.ext,
-                  filePath = _ref2.filePath,
-                  size = _ref2.size,
-                  rawSize = _ref2.rawSize;
-              var constName = name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
-              var hash = hashCode(name, ext, filePath, rawSize);
-              return {
-                name: constName,
-                filePath: filePath,
-                size: size,
-                hash: hash,
-                rawSize: rawSize
-              };
-            });
-            _path = "".concat(_path || config.lintPath);
-            _context5.next = 11;
-            return getFileListLite(_path, [""]);
-
-          case 11:
-            fileLists = _context5.sent;
-            filePaths = fileLists.filter(Boolean).flat(Infinity);
-            mergeAllSourceFile(_path, filePaths, function (stream) {
-              var list = "EIMA ASSET LINT(ALPHA)\n\n--LIST OF NON IN-USE ASSETS--\n\n";
-              var unUsed = importNames.map(function (asset) {
-                var name = asset.name,
-                    size = asset.size;
-                var case1 = stream.indexOf(".".concat(name)) === -1;
-                var case2 = stream.indexOf("{".concat(name)) === -1;
-                var case3 = stream.indexOf("{ ".concat(name)) === -1;
-                var case4 = stream.indexOf(" ".concat(name, ",")) === -1;
-                var unUsedCase = case1 && case2 && case3 && case4; //사용하지 않는 에셋
-
-                if (unUsedCase) {
-                  list += "".concat(name, " ----- ").concat(size, "\n");
-                  return asset;
-                }
-
-                return null;
-              }).filter(Boolean);
-              (0, _console.box)(list); // msg("사용하지 않는 파일들을 지우길 원하시나요?");
-              // console.log(unUsed);
-
-              process.exit();
-            });
-            _context5.next = 20;
-            break;
-
-          case 16:
-            _context5.prev = 16;
-            _context5.t0 = _context5["catch"](3);
-            console.error(_context5.t0);
-            process.exit();
-
-          case 20:
-          case "end":
-            return _context5.stop();
-        }
-      }
-    }, _callee5, null, [[3, 16]]);
-  }));
-  return _assetLint.apply(this, arguments);
 }

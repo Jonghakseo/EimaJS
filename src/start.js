@@ -1,10 +1,31 @@
-import { help } from "./console";
-import { EIMA_ASSET_EXPORT_FILE, ES_VERSION } from "./constants";
-import { runEslint } from "./util";
-const fs = require("fs");
-const path = require("path");
-const { getFileList } = require("./util");
-const { log } = require("./console");
+import { fixEslint, getConfig, getFileList } from "./util";
+import {
+  DEFAULT_CONFIG,
+  EIMA_ASSET_EXPORT_FILE,
+  ES_VERSION,
+} from "./constants";
+import fs from "fs";
+import path from "path";
+import { err, help, log } from "./ink";
+
+export function eimaStart() {
+  const configJson = getConfig();
+  const config = configJson || DEFAULT_CONFIG;
+  if (!configJson) {
+    help("Could not be found or read eima.json. Operate in simple mode.");
+  } else {
+    help("eima.json Has been found.");
+  }
+
+  if (!(config.target === ES_VERSION.ES5 || config.target === ES_VERSION.ES6)) {
+    err("Please check the target ecma script version in eima.json. (es5/es6)");
+    process.exit();
+  }
+
+  config.paths.forEach((path) => {
+    void assetsToImportFile(path, config);
+  });
+}
 
 function makeAssetFileText(material) {
   const {
@@ -75,7 +96,7 @@ function makeAssetFileTextEs5({
   );
 }
 
-export async function updateAssetsFile(pathAndConfig) {
+async function updateAssetsFile(pathAndConfig) {
   const {
     assets: basePath,
     out: outPath,
@@ -94,7 +115,7 @@ export async function updateAssetsFile(pathAndConfig) {
     .map(({ name, ext, filePath, size }) => {
       // console.log(name, ext, filePath, size);
       const constName =
-        name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
+        name.replace(/[^ㄱ-ㅎ|가-힣\w\s]/gim, "_") + "_" + ext.toUpperCase();
       return { constName, filePath, size };
     });
 
@@ -120,41 +141,38 @@ export async function updateAssetsFile(pathAndConfig) {
 
   log("RUNNING ESLINT...");
   let ecmaVersion = target === ES_VERSION.ES5 ? 3 : 2015;
-  await runEslint(outPath, ecmaVersion);
+  await fixEslint(outPath, ecmaVersion);
 
   log(`${basePath} - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED.`);
 }
 
-export function assetsToImportFile(path, config) {
+async function assetsToImportFile(path, config) {
   const { assets, out, vName } = path;
 
   if (!assets) {
-    return help(`PLEASE CHECK THE ASSET PATH. assets: ${assets}`);
+    return err(`PLEASE CHECK THE ASSET PATH. assets: ${assets}`);
   }
   if (!out) {
-    return help(`PLEASE CHECK THE OUTFILE. out: ${out}`);
+    return err(`PLEASE CHECK THE OUTFILE. out: ${out}`);
   }
   if (!vName) {
-    return help(`PLEASE CHECK THE VARIABLE NAME. vName: ${vName}`);
+    return err(`PLEASE CHECK THE VARIABLE NAME. vName: ${vName}`);
   }
-  updateAssetsFile({ ...path, ...config })
-    .then(() => {
-      fs.watch(
-        assets,
-        {
-          recursive: true,
-        },
-        (eventType, fileName) => {
-          const fName = fileName || "_UNKNOWN_";
-          log(`DETECT FILE CHANGES [${eventType} EVENT] - ${fName}`);
-          updateAssetsFile({ ...path, ...config }).catch((e) =>
-            console.error(e)
-          );
-        }
-      );
-    })
-    .catch((e) => {
-      log("THERE WAS A PROBLEM UPDATING THE FILE.");
-      console.error(e);
-    });
+  try {
+    await updateAssetsFile({ ...path, ...config });
+    fs.watch(
+      assets,
+      {
+        recursive: true,
+      },
+      (eventType, fileName) => {
+        const fName = fileName || "_UNKNOWN_";
+        log(`DETECT FILE CHANGES [${eventType} EVENT] - ${fName}`);
+        updateAssetsFile({ ...path, ...config });
+      }
+    );
+  } catch (e) {
+    err("THERE WAS A PROBLEM UPDATING THE FILE.");
+    console.error(e);
+  }
 }

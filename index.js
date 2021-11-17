@@ -2,33 +2,41 @@
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _console = require("./console");
-
 var _react = _interopRequireDefault(require("react"));
 
-var _core = require("./core");
+var _yargs = _interopRequireDefault(require("yargs"));
 
-var yargs = require("yargs");
+var _ink = require("./ink");
 
-yargs.help("help").alias("h", "help");
-yargs.version("0.2.0").alias("v", "version");
-yargs.command({
+var _init = require("./init");
+
+var _start = require("./start");
+
+var _lint = require("./lint");
+
+_yargs["default"].help("help").alias("h", "help");
+
+_yargs["default"].version("0.2.0").alias("v", "version");
+
+_yargs["default"].command({
   command: "init",
   describe: "Init eima",
   handler: function handler() {
-    (0, _core.eimaInit)();
+    (0, _init.eimaInit)();
   }
 });
-yargs.command({
+
+_yargs["default"].command({
   command: "start",
   describe: "Monitor assets and reflect changes",
   handler: function handler() {
-    (0, _core.eimaStart)();
+    (0, _start.eimaStart)();
   }
 });
-yargs.command({
+
+_yargs["default"].command({
   command: "lint",
-  desc: "Check unused asset variables. Use with -p ${target path}",
+  describe: "Check unused asset variables. Use with -p ${target path}",
   builder: {
     path: {
       alias: "p",
@@ -37,14 +45,17 @@ yargs.command({
       type: "string"
     }
   },
-  handler: function handler(args) {
-    (0, _core.eimaLint)(args.path);
+  handler: function handler(_ref) {
+    var path = _ref.path;
+    void (0, _lint.eimaLint)(path);
   }
 });
-yargs.command({
+
+_yargs["default"].command({
   command: "*",
   handler: function handler() {
-    (0, _console.help)("No Commands Found.");
-    yargs.showHelp();
+    (0, _ink.help)("No Commands Found.");
+
+    _yargs["default"].showHelp();
   }
 }).demandCommand().argv;

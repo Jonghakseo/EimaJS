@@ -1,13 +1,22 @@
 import path from "path";
-import { EIMA_ASSET_EXPORT_FILE } from "./constants";
-import { box, err, help, msg } from "./console";
+import fs from "fs";
+import util from "util";
+import readline from "readline";
+import { EIMA, EIMA_ASSET_EXPORT_FILE } from "./constants";
+import { help } from "./ink";
+import { ESLint } from "eslint";
 
-const { ESLint } = require("eslint");
-const fs = require("fs");
-const util = require("util");
-
-const hashCode = (s) =>
-  s.split("").reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
+export function getLineInput(lineCb) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false,
+  });
+  rl.on("line", function (line) {
+    rl.close();
+    lineCb(line);
+  });
+}
 
 // ? fs의 readDir 메소드를 promisify 하게 wrapping 합니다.
 const readdir = util.promisify(fs.readdir);
@@ -31,6 +40,12 @@ export async function getFileList(pathname, prefix) {
       if (fileStat.isFile()) {
         // ? 상수명 (.) dot split
         let CONSTANTS_NAME = name.toUpperCase().split(".")[0];
+        // ? 숫자로 시작하는 파일명 캇트
+        if (CONSTANTS_NAME.substr(0, 1).match(new RegExp("^[0-9]"))) {
+          throw new Error(
+            `[${EIMA}] A NUMBER CANNOT BE AT THE BEGINNING OF THE FILE NAME.`
+          );
+        }
         // ? 확장자
         const ext = path.extname(name).slice(1);
         // ? 용량 kb
@@ -60,7 +75,8 @@ export async function getFileList(pathname, prefix) {
             ext,
             filePath,
             size: `${size}${unit}`,
-            rawSize,
+            _fullFilePath: fullFilePath,
+            _rawSize: rawSize,
           });
         });
       } else {
@@ -70,7 +86,7 @@ export async function getFileList(pathname, prefix) {
   );
 }
 
-export async function getFileListLite(pathname, prefix) {
+export async function getFilePathList(pathname, prefix) {
   const targetPath = prefix ? `${pathname}/${prefix.join("/")}` : pathname;
 
   const fileNames = await readdir(targetPath);
@@ -80,7 +96,7 @@ export async function getFileListLite(pathname, prefix) {
       const fullFilePath = path.resolve(targetPath, name);
       const fileStat = fs.statSync(fullFilePath);
       if (fileStat.isDirectory()) {
-        return getFileListLite(pathname, [...prefix, name]);
+        return getFilePathList(pathname, [...prefix, name]);
       }
       if (fileStat.isFile()) {
         let filePath = name;
@@ -98,7 +114,7 @@ export async function getFileListLite(pathname, prefix) {
   );
 }
 
-export async function makeInitConfigFile(target, assets, out, vName) {
+export async function createConfigFile(target, assets, out, vName) {
   const configJson = {
     target,
     hideSize: false,
@@ -115,7 +131,7 @@ export async function makeInitConfigFile(target, assets, out, vName) {
   fs.writeFileSync(savePath, JSON.stringify(configJson));
 }
 
-export async function runEslint(outPath, ecmaVersion = 2015) {
+export async function fixEslint(outPath, ecmaVersion = 2015) {
   const eslint = new ESLint({
     fix: true,
     overrideConfig: {
@@ -134,7 +150,7 @@ export function mergeAllSourceFile(path, files, cb) {
   files.forEach((fileName) => {
     fs.readFile(`${path}${fileName}`, "utf-8", (err, data) => {
       if (err) {
-        console.error(err);
+        throw err;
       } else {
         if (data.indexOf(EIMA_ASSET_EXPORT_FILE) === -1) {
           // 에셋파일 -> 제외
@@ -165,66 +181,4 @@ export function getConfig() {
     if (!e.path || !e.path.includes("eima.json")) console.error(e);
   }
   return config;
-}
-
-export async function assetLint(path) {
-  const config = getConfig();
-  if (!config || config.paths.length === 0) {
-    err("Please Check eima.json");
-    process.exit();
-  }
-  if (!config.lintPath && !path) {
-    err(
-      "The Lint Feature Requires The Folder Path You Want To Search To. Please Check lintPath in eima.json or -p [path] argument"
-    );
-    process.exit();
-  }
-  try {
-    const fileListPromise = await Promise.all(
-      config.paths.map(({ assets }) => getFileList(assets, []))
-    );
-
-    const importNames = fileListPromise
-      .flat(Infinity)
-      .map(({ name, ext, filePath, size, rawSize }) => {
-        const constName =
-          name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
-        const hash = hashCode(name, ext, filePath, rawSize);
-        return { name: constName, filePath, size, hash, rawSize };
-      });
-
-    const path = `${path || config.lintPath}`;
-    const fileLists = await getFileListLite(path, [""]);
-    const filePaths = fileLists.filter(Boolean).flat(Infinity);
-    mergeAllSourceFile(path, filePaths, (stream) => {
-      let list = "EIMA ASSET LINT(ALPHA)\n\n--LIST OF NON IN-USE ASSETS--\n\n";
-      const unUsed = importNames
-        .map((asset) => {
-          const { name, size } = asset;
-
-          const case1 = stream.indexOf(`.${name}`) === -1;
-          const case2 = stream.indexOf(`{${name}`) === -1;
-          const case3 = stream.indexOf(`{ ${name}`) === -1;
-          const case4 = stream.indexOf(` ${name},`) === -1;
-
-          const unUsedCase = case1 && case2 && case3 && case4;
-          //사용하지 않는 에셋
-          if (unUsedCase) {
-            list += `${name} ----- ${size}\n`;
-            return asset;
-          }
-          return null;
-        })
-        .filter(Boolean);
-
-      box(list);
-
-      // msg("사용하지 않는 파일들을 지우길 원하시나요?");
-      // console.log(unUsed);
-      process.exit();
-    });
-  } catch (e) {
-    console.error(e);
-    process.exit();
-  }
 }

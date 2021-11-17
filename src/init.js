@@ -1,8 +1,6 @@
-import { assetLint, getConfig, makeInitConfigFile } from "./util";
-import { err, help, log, msg } from "./console";
-import { DEFAULT_CONFIG, ES_VERSION } from "./constants";
-import { assetsToImportFile } from "./assetsToImportFile";
 import readline from "readline";
+import { err, log, msg } from "./ink";
+import { createConfigFile } from "./util";
 
 export function eimaInit() {
   const rl = readline.createInterface({
@@ -69,48 +67,11 @@ export function eimaInit() {
   }).on("close", async function () {
     if (isDone) {
       try {
-        await makeInitConfigFile(...options);
+        await createConfigFile(...options);
         log("Setup is complete. --> eima start");
       } catch (e) {
         console.error(e);
       }
-    }
-  });
-}
-
-export function eimaStart() {
-  const configJson = getConfig();
-  const config = configJson || DEFAULT_CONFIG;
-  if (!configJson) {
-    msg("Could not be found or read eima.json. Operate in simple mode.");
-  } else {
-    log("eima.json Has been found.");
-  }
-
-  if (!(config.target === ES_VERSION.ES5 || config.target === ES_VERSION.ES6)) {
-    err("Please check the target ecma script version in eima.json. (es5/es6)");
-    process.exit();
-  }
-
-  config.paths.forEach((path) => {
-    assetsToImportFile(path, config);
-  });
-}
-
-export async function eimaLint(path) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: false,
-  });
-  help(
-    "The Lint Feature Is Experimental And The Results May Not Be Accurate. Do You Still Want To Run It? (Y/N)"
-  );
-  rl.on("line", function (line) {
-    if (line === "Y" || line === "y") {
-      assetLint(path);
-    } else {
-      process.exit();
     }
   });
 }

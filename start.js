@@ -5,8 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.assetsToImportFile = assetsToImportFile;
-exports.updateAssetsFile = updateAssetsFile;
+exports.eimaStart = eimaStart;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
@@ -14,25 +13,39 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _console = require("./console");
+var _util = require("./util");
 
 var _constants = require("./constants");
 
-var _util = require("./util");
+var _fs = _interopRequireDefault(require("fs"));
+
+var _path = _interopRequireDefault(require("path"));
+
+var _ink = require("./ink");
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-var fs = require("fs");
+function eimaStart() {
+  var configJson = (0, _util.getConfig)();
+  var config = configJson || _constants.DEFAULT_CONFIG;
 
-var path = require("path");
+  if (!configJson) {
+    (0, _ink.help)("Could not be found or read eima.json. Operate in simple mode.");
+  } else {
+    (0, _ink.help)("eima.json Has been found.");
+  }
 
-var _require = require("./util"),
-    getFileList = _require.getFileList;
+  if (!(config.target === _constants.ES_VERSION.ES5 || config.target === _constants.ES_VERSION.ES6)) {
+    (0, _ink.err)("Please check the target ecma script version in eima.json. (es5/es6)");
+    process.exit();
+  }
 
-var _require2 = require("./console"),
-    log = _require2.log;
+  config.paths.forEach(function (path) {
+    void assetsToImportFile(path, config);
+  });
+}
 
 function makeAssetFileText(material) {
   var target = material.config.target;
@@ -104,11 +117,11 @@ function _updateAssetsFile() {
         switch (_context.prev = _context.next) {
           case 0:
             basePath = pathAndConfig.assets, outPath = pathAndConfig.out, variableName = pathAndConfig.vName, target = pathAndConfig.target;
-            pathName = path.resolve(process.cwd(), basePath); // ? 파일 목록 재귀로 가져옴
+            pathName = _path["default"].resolve(process.cwd(), basePath); // ? 파일 목록 재귀로 가져옴
 
-            log("GETTING LIST OF FILES...");
+            (0, _ink.log)("GETTING LIST OF FILES...");
             _context.next = 5;
-            return getFileList(pathName, []);
+            return (0, _util.getFileList)(pathName, []);
 
           case 5:
             fileList = _context.sent;
@@ -118,7 +131,7 @@ function _updateAssetsFile() {
                   filePath = _ref7.filePath,
                   size = _ref7.size;
               // console.log(name, ext, filePath, size);
-              var constName = name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
+              var constName = name.replace(/[^ㄱ-ㅎ|가-힣\w\s]/gim, "_") + "_" + ext.toUpperCase();
               return {
                 constName: constName,
                 filePath: filePath,
@@ -141,16 +154,18 @@ function _updateAssetsFile() {
               variableName: variableName
             };
             assetsTsText = makeAssetFileText(material);
-            log("CREATING ASSET IMPORT FILE...");
-            savePath = path.resolve(process.cwd(), "".concat(outPath));
-            fs.writeFileSync(savePath, assetsTsText);
-            log("RUNNING ESLINT...");
+            (0, _ink.log)("CREATING ASSET IMPORT FILE...");
+            savePath = _path["default"].resolve(process.cwd(), "".concat(outPath));
+
+            _fs["default"].writeFileSync(savePath, assetsTsText);
+
+            (0, _ink.log)("RUNNING ESLINT...");
             ecmaVersion = target === _constants.ES_VERSION.ES5 ? 3 : 2015;
             _context.next = 20;
-            return (0, _util.runEslint)(outPath, ecmaVersion);
+            return (0, _util.fixEslint)(outPath, ecmaVersion);
 
           case 20:
-            log("".concat(basePath, " - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED."));
+            (0, _ink.log)("".concat(basePath, " - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED."));
 
           case 21:
           case "end":
@@ -162,35 +177,71 @@ function _updateAssetsFile() {
   return _updateAssetsFile.apply(this, arguments);
 }
 
-function assetsToImportFile(path, config) {
-  var assets = path.assets,
-      out = path.out,
-      vName = path.vName;
+function assetsToImportFile(_x2, _x3) {
+  return _assetsToImportFile.apply(this, arguments);
+}
 
-  if (!assets) {
-    return (0, _console.help)("PLEASE CHECK THE ASSET PATH. assets: ".concat(assets));
-  }
+function _assetsToImportFile() {
+  _assetsToImportFile = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(path, config) {
+    var assets, out, vName;
+    return _regenerator["default"].wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            assets = path.assets, out = path.out, vName = path.vName;
 
-  if (!out) {
-    return (0, _console.help)("PLEASE CHECK THE OUTFILE. out: ".concat(out));
-  }
+            if (assets) {
+              _context2.next = 3;
+              break;
+            }
 
-  if (!vName) {
-    return (0, _console.help)("PLEASE CHECK THE VARIABLE NAME. vName: ".concat(vName));
-  }
+            return _context2.abrupt("return", (0, _ink.err)("PLEASE CHECK THE ASSET PATH. assets: ".concat(assets)));
 
-  updateAssetsFile(_objectSpread(_objectSpread({}, path), config)).then(function () {
-    fs.watch(assets, {
-      recursive: true
-    }, function (eventType, fileName) {
-      var fName = fileName || "_UNKNOWN_";
-      log("DETECT FILE CHANGES [".concat(eventType, " EVENT] - ").concat(fName));
-      updateAssetsFile(_objectSpread(_objectSpread({}, path), config))["catch"](function (e) {
-        return console.error(e);
-      });
-    });
-  })["catch"](function (e) {
-    log("THERE WAS A PROBLEM UPDATING THE FILE.");
-    console.error(e);
-  });
+          case 3:
+            if (out) {
+              _context2.next = 5;
+              break;
+            }
+
+            return _context2.abrupt("return", (0, _ink.err)("PLEASE CHECK THE OUTFILE. out: ".concat(out)));
+
+          case 5:
+            if (vName) {
+              _context2.next = 7;
+              break;
+            }
+
+            return _context2.abrupt("return", (0, _ink.err)("PLEASE CHECK THE VARIABLE NAME. vName: ".concat(vName)));
+
+          case 7:
+            _context2.prev = 7;
+            _context2.next = 10;
+            return updateAssetsFile(_objectSpread(_objectSpread({}, path), config));
+
+          case 10:
+            _fs["default"].watch(assets, {
+              recursive: true
+            }, function (eventType, fileName) {
+              var fName = fileName || "_UNKNOWN_";
+              (0, _ink.log)("DETECT FILE CHANGES [".concat(eventType, " EVENT] - ").concat(fName));
+              updateAssetsFile(_objectSpread(_objectSpread({}, path), config));
+            });
+
+            _context2.next = 17;
+            break;
+
+          case 13:
+            _context2.prev = 13;
+            _context2.t0 = _context2["catch"](7);
+            (0, _ink.err)("THERE WAS A PROBLEM UPDATING THE FILE.");
+            console.error(_context2.t0);
+
+          case 17:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, null, [[7, 13]]);
+  }));
+  return _assetsToImportFile.apply(this, arguments);
 }
