@@ -12,6 +12,16 @@ const Help = ({ msg }) => (
   </Static>
 );
 
+const Error = ({ msg }) => (
+  <Static items={["error"]}>
+    {(value) => (
+      <Box key={value}>
+        <Text color="red">{`[${EIMA}] : ${msg}`}</Text>
+      </Box>
+    )}
+  </Static>
+);
+
 const Message = ({ msg }) => (
   <Static items={["msg"]}>
     {(value) => (
@@ -54,6 +64,9 @@ export function msg() {
 
 export function help() {
   render(<Help msg={[...arguments]} />).cleanup();
+}
+export function err() {
+  render(<Error msg={[...arguments]} />).cleanup();
 }
 
 export function log() {

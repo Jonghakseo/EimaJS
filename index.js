@@ -10,7 +10,8 @@ var _core = require("./core");
 
 var yargs = require("yargs");
 
-yargs.version("0.1.8");
+yargs.help("help").alias("h", "help");
+yargs.version("0.2.0").alias("v", "version");
 yargs.command({
   command: "init",
   describe: "Init eima",
@@ -27,14 +28,24 @@ yargs.command({
 });
 yargs.command({
   command: "lint",
-  describe: "Check unused asset variables",
-  handler: function handler() {
-    (0, _core.eimaLint)();
+  desc: "Check unused asset variables. Use with -p ${target path}",
+  builder: {
+    path: {
+      alias: "p",
+      desc: "Lint target path",
+      demandOption: true,
+      nargs: 1,
+      type: "string"
+    }
+  },
+  handler: function handler(args) {
+    (0, _core.eimaLint)(args.path);
   }
 });
 yargs.command({
   command: "*",
   handler: function handler() {
-    (0, _console.help)("Can't find command --help");
+    (0, _console.help)("No Commands Found.");
+    yargs.showHelp();
   }
 }).demandCommand().argv;

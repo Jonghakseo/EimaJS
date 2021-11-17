@@ -5,7 +5,7 @@ import {
   makeInitConfigFile,
   mergeAllSourceFile,
 } from "./util";
-import { box, help, log, msg } from "./console";
+import { box, err, help, log, msg } from "./console";
 import { DEFAULT_CONFIG, ES_VERSION } from "./constants";
 import { assetsToImportFile } from "./assetsToImportFile";
 import readline from "readline";
@@ -22,7 +22,10 @@ export function eimaInit() {
   let isDone = false;
   rl.on("line", function (line) {
     let input = line;
-
+    if (line.slice() === "/") {
+      err("THE FIRST SLASH ON THE PATH IS NOT AVAILABLE.");
+      process.exit();
+    }
     switch (options.length) {
       case 0:
         input = line || "es6";
@@ -64,7 +67,7 @@ export function eimaInit() {
           isDone = true;
           rl.close();
         } else {
-          msg("Stop setting up");
+          err("Stop setting up");
           process.exit();
         }
         break;
@@ -91,7 +94,7 @@ export function eimaStart() {
   }
 
   if (!(config.target === ES_VERSION.ES5 || config.target === ES_VERSION.ES6)) {
-    help("Please check the target ecma script version in eima.json. (es5/es6)");
+    err("Please check the target ecma script version in eima.json. (es5/es6)");
     process.exit();
   }
 
@@ -100,25 +103,30 @@ export function eimaStart() {
   });
 }
 
-export async function eimaLint() {
+export async function eimaLint(path) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
     terminal: false,
   });
+  if (!path) {
+    return err(
+      "The Lint Feature Requires The Folder Path You Want To Search To. Please Check Path Argument."
+    );
+  }
   help(
     "The Lint Feature Is Experimental And The Results May Not Be Accurate. Do You Still Want To Run It? (Y/N)"
   );
   rl.on("line", function (line) {
     if (line === "Y" || line === "y") {
-      assetLint();
+      assetLint(path);
     } else {
       process.exit();
     }
   });
 }
 
-async function assetLint() {
+async function assetLint(path) {
   const config = getConfig();
   if (config) {
     const fileListPromise = await Promise.all(
@@ -134,7 +142,7 @@ async function assetLint() {
         return { name: constName, filePath, size };
       });
 
-    const fileLists = await getFileListLite(__dirname, ["src"]);
+    const fileLists = await getFileListLite(__dirname, [`${path}`]);
     const filePaths = fileLists.filter(Boolean).flat(Infinity);
     mergeAllSourceFile(filePaths, (stream) => {
       let list = "EIMA ASSET LINT(ALPHA)\n\n--LIST OF NON IN-USE ASSETS--\n\n";
@@ -156,5 +164,8 @@ async function assetLint() {
       box(list);
       process.exit();
     });
+  } else {
+    err("Please Check eima.json");
+    process.exit();
   }
 }

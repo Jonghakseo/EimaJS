@@ -36,6 +36,11 @@ function eimaInit() {
   rl.on("line", function (line) {
     var input = line;
 
+    if (line.slice() === "/") {
+      (0, _console.err)("THE FIRST SLASH ON THE PATH IS NOT AVAILABLE.");
+      process.exit();
+    }
+
     switch (options.length) {
       case 0:
         input = line || "es6";
@@ -73,7 +78,7 @@ function eimaInit() {
           isDone = true;
           rl.close();
         } else {
-          (0, _console.msg)("Stop setting up");
+          (0, _console.err)("Stop setting up");
           process.exit();
         }
 
@@ -123,7 +128,7 @@ function eimaStart() {
   }
 
   if (!(config.target === _constants.ES_VERSION.ES5 || config.target === _constants.ES_VERSION.ES6)) {
-    (0, _console.help)("Please check the target ecma script version in eima.json. (es5/es6)");
+    (0, _console.err)("Please check the target ecma script version in eima.json. (es5/es6)");
     process.exit();
   }
 
@@ -132,12 +137,12 @@ function eimaStart() {
   });
 }
 
-function eimaLint() {
+function eimaLint(_x) {
   return _eimaLint.apply(this, arguments);
 }
 
 function _eimaLint() {
-  _eimaLint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2() {
+  _eimaLint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(path) {
     var rl;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) {
@@ -148,16 +153,25 @@ function _eimaLint() {
               output: process.stdout,
               terminal: false
             });
+
+            if (path) {
+              _context2.next = 3;
+              break;
+            }
+
+            return _context2.abrupt("return", (0, _console.err)("The Lint Feature Requires The Folder Path You Want To Search To. Please Check Path Argument."));
+
+          case 3:
             (0, _console.help)("The Lint Feature Is Experimental And The Results May Not Be Accurate. Do You Still Want To Run It? (Y/N)");
             rl.on("line", function (line) {
               if (line === "Y" || line === "y") {
-                assetLint();
+                assetLint(path);
               } else {
                 process.exit();
               }
             });
 
-          case 3:
+          case 5:
           case "end":
             return _context2.stop();
         }
@@ -167,12 +181,12 @@ function _eimaLint() {
   return _eimaLint.apply(this, arguments);
 }
 
-function assetLint() {
+function assetLint(_x2) {
   return _assetLint.apply(this, arguments);
 }
 
 function _assetLint() {
-  _assetLint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
+  _assetLint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(path) {
     var config, fileListPromise, importNames, fileLists, filePaths;
     return _regenerator["default"].wrap(function _callee3$(_context3) {
       while (1) {
@@ -181,7 +195,7 @@ function _assetLint() {
             config = (0, _util.getConfig)();
 
             if (!config) {
-              _context3.next = 11;
+              _context3.next = 13;
               break;
             }
 
@@ -206,7 +220,7 @@ function _assetLint() {
               };
             });
             _context3.next = 8;
-            return (0, _util.getFileListLite)(__dirname, ["src"]);
+            return (0, _util.getFileListLite)(__dirname, ["".concat(path)]);
 
           case 8:
             fileLists = _context3.sent;
@@ -230,8 +244,14 @@ function _assetLint() {
               (0, _console.box)(list);
               process.exit();
             });
+            _context3.next = 15;
+            break;
 
-          case 11:
+          case 13:
+            (0, _console.err)("Please Check eima.json");
+            process.exit();
+
+          case 15:
           case "end":
             return _context3.stop();
         }
