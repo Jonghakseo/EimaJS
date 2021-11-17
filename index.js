@@ -33,7 +33,6 @@ yargs.command({
     path: {
       alias: "p",
       desc: "Lint target path",
-      demandOption: true,
       nargs: 1,
       type: "string"
     }

@@ -153,15 +153,6 @@ function _eimaLint() {
               output: process.stdout,
               terminal: false
             });
-
-            if (path) {
-              _context2.next = 3;
-              break;
-            }
-
-            return _context2.abrupt("return", (0, _console.err)("The Lint Feature Requires The Folder Path You Want To Search To. Please Check Path Argument."));
-
-          case 3:
             (0, _console.help)("The Lint Feature Is Experimental And The Results May Not Be Accurate. Do You Still Want To Run It? (Y/N)");
             rl.on("line", function (line) {
               if (line === "Y" || line === "y") {
@@ -171,7 +162,7 @@ function _eimaLint() {
               }
             });
 
-          case 5:
+          case 3:
           case "end":
             return _context2.stop();
         }
@@ -194,18 +185,23 @@ function _assetLint() {
           case 0:
             config = (0, _util.getConfig)();
 
-            if (!config) {
-              _context3.next = 13;
-              break;
+            if (!config || !config.paths.length === 0) {
+              (0, _console.err)("Please Check eima.json");
+              process.exit();
             }
 
-            _context3.next = 4;
+            if (!config.lintPath && !path) {
+              (0, _console.err)("The Lint Feature Requires The Folder Path You Want To Search To. Please Check lintPath in eima.json or -p [path] argument");
+              process.exit();
+            }
+
+            _context3.next = 5;
             return Promise.all(config.paths.map(function (_ref2) {
               var assets = _ref2.assets;
               return (0, _util.getFileList)(assets, []);
             }));
 
-          case 4:
+          case 5:
             fileListPromise = _context3.sent;
             importNames = fileListPromise.flat(Infinity).map(function (_ref3) {
               var name = _ref3.name,
@@ -219,10 +215,10 @@ function _assetLint() {
                 size: size
               };
             });
-            _context3.next = 8;
-            return (0, _util.getFileListLite)(__dirname, ["".concat(path)]);
+            _context3.next = 9;
+            return (0, _util.getFileListLite)(__dirname, ["".concat(path || config.lintPath)]);
 
-          case 8:
+          case 9:
             fileLists = _context3.sent;
             filePaths = fileLists.filter(Boolean).flat(Infinity);
             (0, _util.mergeAllSourceFile)(filePaths, function (stream) {
@@ -244,14 +240,8 @@ function _assetLint() {
               (0, _console.box)(list);
               process.exit();
             });
-            _context3.next = 15;
-            break;
 
-          case 13:
-            (0, _console.err)("Please Check eima.json");
-            process.exit();
-
-          case 15:
+          case 12:
           case "end":
             return _context3.stop();
         }
