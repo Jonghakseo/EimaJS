@@ -1,6 +1,6 @@
 {
   "name": "eima",
-  "version": "0.2.1",
+  "version": "0.2.7",
   "description": "Easy to Import Multiple Assets",
   "scripts": {
     "build": "babel src --out-dir .",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.16.0",
+    "@types/node": "^16.11.7",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.25.3",

@@ -156,7 +156,7 @@ function _eimaLint() {
             (0, _console.help)("The Lint Feature Is Experimental And The Results May Not Be Accurate. Do You Still Want To Run It? (Y/N)");
             rl.on("line", function (line) {
               if (line === "Y" || line === "y") {
-                assetLint(path);
+                (0, _util.assetLint)(path);
               } else {
                 process.exit();
               }
@@ -170,83 +170,4 @@ function _eimaLint() {
     }, _callee2);
   }));
   return _eimaLint.apply(this, arguments);
-}
-
-function assetLint(_x2) {
-  return _assetLint.apply(this, arguments);
-}
-
-function _assetLint() {
-  _assetLint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(path) {
-    var config, fileListPromise, importNames, fileLists, filePaths;
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            config = (0, _util.getConfig)();
-
-            if (!config || !config.paths.length === 0) {
-              (0, _console.err)("Please Check eima.json");
-              process.exit();
-            }
-
-            if (!config.lintPath && !path) {
-              (0, _console.err)("The Lint Feature Requires The Folder Path You Want To Search To. Please Check lintPath in eima.json or -p [path] argument");
-              process.exit();
-            }
-
-            _context3.next = 5;
-            return Promise.all(config.paths.map(function (_ref2) {
-              var assets = _ref2.assets;
-              return (0, _util.getFileList)(assets, []);
-            }));
-
-          case 5:
-            fileListPromise = _context3.sent;
-            importNames = fileListPromise.flat(Infinity).map(function (_ref3) {
-              var name = _ref3.name,
-                  ext = _ref3.ext,
-                  filePath = _ref3.filePath,
-                  size = _ref3.size;
-              var constName = name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
-              return {
-                name: constName,
-                filePath: filePath,
-                size: size
-              };
-            });
-            _context3.next = 9;
-            return (0, _util.getFileListLite)(__dirname, ["".concat(path || config.lintPath)]);
-
-          case 9:
-            fileLists = _context3.sent;
-            filePaths = fileLists.filter(Boolean).flat(Infinity);
-            (0, _util.mergeAllSourceFile)(filePaths, function (stream) {
-              var list = "EIMA ASSET LINT(ALPHA)\n\n--LIST OF NON IN-USE ASSETS--\n\n";
-              importNames.forEach(function (asset) {
-                var name = asset.name,
-                    size = asset.size,
-                    filePath = asset.filePath;
-                var case1 = stream.indexOf(".".concat(name)) === -1;
-                var case2 = stream.indexOf("{".concat(name)) === -1;
-                var case3 = stream.indexOf("{ ".concat(name)) === -1;
-                var case4 = stream.indexOf(" ".concat(name, ",")) === -1;
-                var unUsedCase = case1 && case2 && case3 && case4; //사용하지 않는 에셋
-
-                if (unUsedCase) {
-                  list += "".concat(name, " ----- ").concat(size, "\n");
-                }
-              });
-              (0, _console.box)(list);
-              process.exit();
-            });
-
-          case 12:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-  return _assetLint.apply(this, arguments);
 }

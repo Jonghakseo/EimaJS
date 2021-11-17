@@ -1,11 +1,5 @@
-import {
-  getConfig,
-  getFileList,
-  getFileListLite,
-  makeInitConfigFile,
-  mergeAllSourceFile,
-} from "./util";
-import { box, err, help, log, msg } from "./console";
+import { assetLint, getConfig, makeInitConfigFile } from "./util";
+import { err, help, log, msg } from "./console";
 import { DEFAULT_CONFIG, ES_VERSION } from "./constants";
 import { assetsToImportFile } from "./assetsToImportFile";
 import readline from "readline";
@@ -118,56 +112,5 @@ export async function eimaLint(path) {
     } else {
       process.exit();
     }
-  });
-}
-
-async function assetLint(path) {
-  const config = getConfig();
-  if (!config || !config.paths.length === 0) {
-    err("Please Check eima.json");
-    process.exit();
-  }
-  if (!config.lintPath && !path) {
-    err(
-      "The Lint Feature Requires The Folder Path You Want To Search To. Please Check lintPath in eima.json or -p [path] argument"
-    );
-    process.exit();
-  }
-  const fileListPromise = await Promise.all(
-    config.paths.map(({ assets }) => getFileList(assets, []))
-  );
-
-  const importNames = fileListPromise
-    .flat(Infinity)
-    .map(({ name, ext, filePath, size }) => {
-      const constName =
-        name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
-
-      return { name: constName, filePath, size };
-    });
-
-  const fileLists = await getFileListLite(__dirname, [
-    `${path || config.lintPath}`,
-  ]);
-  const filePaths = fileLists.filter(Boolean).flat(Infinity);
-  mergeAllSourceFile(filePaths, (stream) => {
-    let list = "EIMA ASSET LINT(ALPHA)\n\n--LIST OF NON IN-USE ASSETS--\n\n";
-    importNames.forEach((asset) => {
-      const { name, size, filePath } = asset;
-
-      const case1 = stream.indexOf(`.${name}`) === -1;
-      const case2 = stream.indexOf(`{${name}`) === -1;
-      const case3 = stream.indexOf(`{ ${name}`) === -1;
-      const case4 = stream.indexOf(` ${name},`) === -1;
-
-      const unUsedCase = case1 && case2 && case3 && case4;
-      //사용하지 않는 에셋
-      if (unUsedCase) {
-        list += `${name} ----- ${size}\n`;
-      }
-    });
-
-    box(list);
-    process.exit();
   });
 }

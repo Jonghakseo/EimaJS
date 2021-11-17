@@ -5,6 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.assetLint = assetLint;
 exports.getConfig = getConfig;
 exports.getFileList = getFileList;
 exports.getFileListLite = getFileListLite;
@@ -18,7 +19,7 @@ var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _path = _interopRequireDefault(require("path"));
+var _path2 = _interopRequireDefault(require("path"));
 
 var _constants = require("./constants");
 
@@ -29,7 +30,13 @@ var _require = require("eslint"),
 
 var fs = require("fs");
 
-var util = require("util"); // ? fs의 readDir 메소드를 promisify 하게 wrapping 합니다.
+var util = require("util");
+
+var hashCode = function hashCode(s) {
+  return s.split("").reduce(function (a, b) {
+    return (a << 5) - a + b.charCodeAt(0) | 0;
+  }, 0);
+}; // ? fs의 readDir 메소드를 promisify 하게 wrapping 합니다.
 
 
 var readdir = util.promisify(fs.readdir); // ? file List를 파싱합니다.
@@ -53,7 +60,7 @@ function _getFileList() {
           case 3:
             fileNames = _context.sent;
             return _context.abrupt("return", Promise.all(fileNames.map(function (name) {
-              var fullFilePath = _path["default"].resolve(targetPath, name);
+              var fullFilePath = _path2["default"].resolve(targetPath, name);
 
               var fileStat = fs.statSync(fullFilePath); // ? 폴더인 경우 재귀 탐색
 
@@ -69,12 +76,13 @@ function _getFileList() {
                 var CONSTANTS_NAME = name.toUpperCase().split(".")[0]; // ? 확장자
 
                 // ? 확장자
-                var ext = _path["default"].extname(name).slice(1); // ? 용량 kb
+                var ext = _path2["default"].extname(name).slice(1); // ? 용량 kb
 
 
                 // ? 용량 kb
                 var unit = "kb";
-                var size = Math.round(fileStat.size / 1024);
+                var rawSize = fileStat.size;
+                var size = Math.round(rawSize / 1024);
 
                 if (size > 1024) {
                   size = Math.round(size / 102.4) / 10;
@@ -99,7 +107,8 @@ function _getFileList() {
                     name: CONSTANTS_NAME,
                     ext: ext,
                     filePath: filePath,
-                    size: "".concat(size).concat(unit)
+                    size: "".concat(size).concat(unit),
+                    rawSize: rawSize
                   });
                 });
               } else {
@@ -135,7 +144,7 @@ function _getFileListLite() {
           case 3:
             fileNames = _context2.sent;
             return _context2.abrupt("return", Promise.all(fileNames.map(function (name) {
-              var fullFilePath = _path["default"].resolve(targetPath, name);
+              var fullFilePath = _path2["default"].resolve(targetPath, name);
 
               var fileStat = fs.statSync(fullFilePath);
 
@@ -189,7 +198,7 @@ function _makeInitConfigFile() {
                 vName: vName
               }]
             };
-            savePath = _path["default"].resolve(process.cwd(), "eima.json");
+            savePath = _path2["default"].resolve(process.cwd(), "eima.json");
             fs.writeFileSync(savePath, JSON.stringify(configJson));
 
           case 3:
@@ -243,11 +252,11 @@ function _runEslint() {
   return _runEslint.apply(this, arguments);
 }
 
-function mergeAllSourceFile(files, cb) {
+function mergeAllSourceFile(path, files, cb) {
   var stream = "";
   var count = 0;
   files.forEach(function (fileName) {
-    fs.readFile(fileName, "utf-8", function (err, data) {
+    fs.readFile("".concat(path).concat(fileName), "utf-8", function (err, data) {
       if (err) {
         console.error(err);
       } else {
@@ -267,7 +276,7 @@ function mergeAllSourceFile(files, cb) {
 }
 
 function getConfig() {
-  var configPath = _path["default"].resolve(process.cwd(), "eima.json");
+  var configPath = _path2["default"].resolve(process.cwd(), "eima.json");
 
   var config = null;
 
@@ -285,4 +294,102 @@ function getConfig() {
   }
 
   return config;
+}
+
+function assetLint(_x10) {
+  return _assetLint.apply(this, arguments);
+}
+
+function _assetLint() {
+  _assetLint = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(path) {
+    var config, fileListPromise, importNames, _path, fileLists, filePaths;
+
+    return _regenerator["default"].wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            config = getConfig();
+
+            if (!config || config.paths.length === 0) {
+              (0, _console.err)("Please Check eima.json");
+              process.exit();
+            }
+
+            if (!config.lintPath && !path) {
+              (0, _console.err)("The Lint Feature Requires The Folder Path You Want To Search To. Please Check lintPath in eima.json or -p [path] argument");
+              process.exit();
+            }
+
+            _context5.prev = 3;
+            _context5.next = 6;
+            return Promise.all(config.paths.map(function (_ref) {
+              var assets = _ref.assets;
+              return getFileList(assets, []);
+            }));
+
+          case 6:
+            fileListPromise = _context5.sent;
+            importNames = fileListPromise.flat(Infinity).map(function (_ref2) {
+              var name = _ref2.name,
+                  ext = _ref2.ext,
+                  filePath = _ref2.filePath,
+                  size = _ref2.size,
+                  rawSize = _ref2.rawSize;
+              var constName = name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
+              var hash = hashCode(name, ext, filePath, rawSize);
+              return {
+                name: constName,
+                filePath: filePath,
+                size: size,
+                hash: hash,
+                rawSize: rawSize
+              };
+            });
+            _path = "".concat(_path || config.lintPath);
+            _context5.next = 11;
+            return getFileListLite(_path, [""]);
+
+          case 11:
+            fileLists = _context5.sent;
+            filePaths = fileLists.filter(Boolean).flat(Infinity);
+            mergeAllSourceFile(_path, filePaths, function (stream) {
+              var list = "EIMA ASSET LINT(ALPHA)\n\n--LIST OF NON IN-USE ASSETS--\n\n";
+              var unUsed = importNames.map(function (asset) {
+                var name = asset.name,
+                    size = asset.size;
+                var case1 = stream.indexOf(".".concat(name)) === -1;
+                var case2 = stream.indexOf("{".concat(name)) === -1;
+                var case3 = stream.indexOf("{ ".concat(name)) === -1;
+                var case4 = stream.indexOf(" ".concat(name, ",")) === -1;
+                var unUsedCase = case1 && case2 && case3 && case4; //사용하지 않는 에셋
+
+                if (unUsedCase) {
+                  list += "".concat(name, " ----- ").concat(size, "\n");
+                  return asset;
+                }
+
+                return null;
+              }).filter(Boolean);
+              (0, _console.box)(list); // msg("사용하지 않는 파일들을 지우길 원하시나요?");
+              // console.log(unUsed);
+
+              process.exit();
+            });
+            _context5.next = 20;
+            break;
+
+          case 16:
+            _context5.prev = 16;
+            _context5.t0 = _context5["catch"](3);
+            console.error(_context5.t0);
+            process.exit();
+
+          case 20:
+          case "end":
+            return _context5.stop();
+        }
+      }
+    }, _callee5, null, [[3, 16]]);
+  }));
+  return _assetLint.apply(this, arguments);
 }
