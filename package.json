@@ -1,9 +1,9 @@
 {
   "name": "eima",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "Easy to Import Multiple Assets",
   "scripts": {
-    "build": "babel src --out-dir .",
+    "build": "babel src --out-dir . --presets minify --no-comments",
     "test:init": "node index.js init",
     "test:start": "node index.js start",
     "watch": "nodemon --watch src --exec \"yarn build\""
@@ -50,6 +50,7 @@
     "@babel/preset-env": "^7.13.8",
     "@babel/preset-react": "^7.16.0",
     "@types/yargs": "^17.0.5",
+    "babel-preset-minify": "^0.5.1",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
     "nodemon": "^2.0.7"
   },

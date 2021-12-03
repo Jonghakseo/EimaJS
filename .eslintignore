@@ -1,3 +1,7 @@
+console.js
+constants.js
 index.js
+init.js
+ink.js
+lint.js
 util.js
-assetsToImportFile.js
