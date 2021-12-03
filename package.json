@@ -1,6 +1,6 @@
 {
   "name": "eima",
-  "version": "0.2.10",
+  "version": "0.2.12",
   "description": "Easy to Import Multiple Assets",
   "scripts": {
     "build": "babel src --out-dir . --presets minify --no-comments",

@@ -110,8 +110,8 @@ async function updateAssetsFile(pathAndConfig) {
 
   const fileList = await getFileList(pathName, []);
   const assetFileInfo = fileList
-    .filter(Boolean)
     .flat(Infinity)
+    .filter(Boolean)
     .map(({ name, ext, filePath, size }) => {
       // console.log(name, ext, filePath, size);
       const constName =
