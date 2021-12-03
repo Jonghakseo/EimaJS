@@ -71,7 +71,13 @@ function _getFileList() {
             return _context.abrupt("return", Promise.all(fileNames.map(function (name) {
               var fullFilePath = _path["default"].resolve(targetPath, name);
 
-              var fileStat = _fs["default"].statSync(fullFilePath); // ? 폴더인 경우 재귀 탐색
+              var fileStat = _fs["default"].statSync(fullFilePath); // ? 숨김파일, 숨김폴더인 경우 탐색 제외
+
+
+              // ? 숨김파일, 숨김폴더인 경우 탐색 제외
+              if (name.length > 0 && name.charAt(0) === ".") {
+                return null;
+              } // ? 폴더인 경우 재귀 탐색
 
 
               // ? 폴더인 경우 재귀 탐색

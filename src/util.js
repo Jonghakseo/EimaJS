@@ -32,6 +32,11 @@ export async function getFileList(pathname, prefix) {
     fileNames.map((name) => {
       const fullFilePath = path.resolve(targetPath, name);
       const fileStat = fs.statSync(fullFilePath);
+
+      // ? 숨김파일, 숨김폴더인 경우 탐색 제외
+      if (name.length > 0 && name.charAt(0) ==="."){
+        return null;
+      }
       // ? 폴더인 경우 재귀 탐색
       if (fileStat.isDirectory()) {
         return getFileList(pathname, [...prefix, name]);
