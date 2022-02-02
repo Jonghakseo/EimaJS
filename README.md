@@ -1,6 +1,7 @@
 # Eima.js
 
 > Easy to Import Multiple Assets
+> Asset management should not bother you. Forget about it and focus on your code. We do the rest.
 
 list of commands
 
