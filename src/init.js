@@ -96,7 +96,7 @@ export async function eimaInit() {
 
   await welcome();
   const esVersion = await questionEsVersion();
-  options.push(esVersion);
+  options.push(esVersion.split("(")[0]);
   const folderPath = await questionFolderPath();
   options.push(folderPath);
   const fileToExport = await questionFileToExport();
