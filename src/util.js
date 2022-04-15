@@ -34,7 +34,7 @@ export async function getFileList(pathname, prefix) {
       const fileStat = fs.statSync(fullFilePath);
 
       // ? 숨김파일, 숨김폴더인 경우 탐색 제외
-      if (name.length > 0 && name.charAt(0) ==="."){
+      if (name.length > 0 && name.charAt(0) === ".") {
         return null;
       }
       // ? 폴더인 경우 재귀 탐색
@@ -119,16 +119,27 @@ export async function getFilePathList(pathname, prefix) {
   );
 }
 
-export async function createConfigFile(target, assets, out, vName) {
+// aima.json 파일을 만든다.
+export async function createConfigFile({
+  target,
+  assetPath,
+  outputPath,
+  variableName,
+  variableNameCasing,
+  isIncludingExt,
+}) {
+  // export async function createConfigFile(target, assets, out, vName) {
   const configJson = {
     target,
     hideSize: false,
+    isIncludingExt,
+    variableNameCasing,
     lintPath: "src",
     paths: [
       {
-        assets,
-        out,
-        vName,
+        assets: assetPath,
+        out: outputPath,
+        vName: variableName,
       },
     ],
   };
