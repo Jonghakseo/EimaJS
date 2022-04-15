@@ -6,7 +6,7 @@ import { eimaStart } from "./start";
 import { eimaLint } from "./lint";
 
 yargs.help("help").alias("h", "help");
-yargs.version("0.2.0").alias("v", "version");
+yargs.version("0.2.12").alias("v", "version");
 
 yargs.command({
   command: "init",

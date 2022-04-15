@@ -1,6 +1,8 @@
 # Eima.js
 
 > Easy to Import Multiple Assets
+> <br /><br />
+> Asset management should not bother you. Forget about it and focus on your code. We do the rest.
 
 list of commands
 
@@ -22,5 +24,5 @@ list of commands
 
 ### TODO
 
-- DETECT AND DELETE UNUSED ASSET
-- SUPPORTING DYNAMIC IMPORT
+- [ ] DETECT AND DELETE UNUSED ASSET
+- [ ] SUPPORTING DYNAMIC IMPORT
