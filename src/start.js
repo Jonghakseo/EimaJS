@@ -11,6 +11,7 @@ import { err, help, log } from "./ink";
 export function eimaStart() {
   const configJson = getConfig();
   const config = configJson || DEFAULT_CONFIG;
+
   if (!configJson) {
     help("Could not be found or read eima.json. Operate in simple mode.");
   } else {
@@ -102,6 +103,7 @@ async function updateAssetsFile(pathAndConfig) {
     out: outPath,
     vName: variableName,
     target,
+    isIncludingExt,
   } = pathAndConfig;
 
   const pathName = path.resolve(process.cwd(), basePath);
@@ -113,12 +115,10 @@ async function updateAssetsFile(pathAndConfig) {
     .flat(Infinity)
     .filter(Boolean)
     .map(({ name, ext, filePath, size }) => {
-      // console.log(name, ext, filePath, size);
-      // TODO: 옵셔널하게 확장자를 넣고 빼게 설정할 수 있게 하기
       // TODO: 변수명을 카멜케이스, 스네이크, 케밥 중에 선택할 수 있게 하기
-      // TODO: 나중에 변수명 통째로 변경하는 기능도 만들기
-      const constName =
-        name.replace(/[^ㄱ-ㅎ|가-힣\w\s]/gim, "_") + "_" + ext.toUpperCase();
+      const constName = `${name.replace(/[^ㄱ-ㅎ|가-힣\w\s]/gim, "_")}${
+        isIncludingExt ? `_${ext.toUpperCase()}` : ""
+      }`;
       return { constName, filePath, size };
     });
 
@@ -139,6 +139,7 @@ async function updateAssetsFile(pathAndConfig) {
   let assetsTsText = makeAssetFileText(material);
 
   log("CREATING ASSET IMPORT FILE...");
+  log(outPath);
   const savePath = path.resolve(process.cwd(), `${outPath}`);
   fs.writeFileSync(savePath, assetsTsText);
 

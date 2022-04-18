@@ -1,0 +1,1 @@
+"use strict";var SAMPLE_PNG=require("../assets/sample.png"),난_PNG=require("../assets/\uB09C.png"),ASSETS={SAMPLE_PNG:SAMPLE_PNG,난_PNG:난_PNG};module.exports=ASSETS;

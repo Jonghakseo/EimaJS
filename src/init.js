@@ -6,9 +6,6 @@ import gradient from "gradient-string";
 import chalkAnimation from "chalk-animation";
 import figlet from "figlet";
 import { createSpinner } from "nanospinner";
-// import readline from "readline";
-// import { async } from "@babel/runtime/regenerator";
-// import { err, log, msg } from "./ink";
 import { createConfigFile } from "./util";
 import { ES_VERSION, TOTAL_STEP, VARIABLE_CASING } from "./constants";
 
@@ -126,21 +123,16 @@ async function questionCheckAnswers(options) {
 ////////////////////
 export async function eimaInit() {
   let isDone = false;
-  // const options = [];
   const options = {};
 
   await welcome();
   const esVersion = await questionEsVersion();
-  // options.push(esVersion.split("(")[0]);
   options.target = esVersion.split("(")[0];
   const folderPath = await questionFolderPath(1);
-  // options.push(folderPath);
   options.assetPath = folderPath;
   const fileToExport = await questionFileToExport(2);
-  // options.push(fileToExport);
   options.outputPath = fileToExport;
   const variableName = await questionVariableName(3);
-  // options.push(variableName);
   options.variableName = variableName;
   const variableNameCasing = await questionVariableNamingType(4);
   options.variableNameCasing = variableNameCasing;
