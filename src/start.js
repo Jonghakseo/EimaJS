@@ -1,6 +1,15 @@
 import fs from "fs";
 import path from "path";
-import { fixEslint, getConfig, getFileList } from "./util";
+import {
+  fixEslint,
+  getConfig,
+  getFileList,
+  makePascalCaseName,
+  makeKebabCaseName,
+  makeSnakeCaseName,
+  makeSnakeWithUpperCaseName,
+  makeCamelCaseName,
+} from "./util";
 import {
   DEFAULT_CONFIG,
   EIMA_ASSET_EXPORT_FILE,
@@ -102,9 +111,31 @@ async function updateAssetsFile(pathAndConfig) {
     assets: basePath,
     out: outPath,
     vName: variableName,
+    variableNameCasing,
     target,
     isIncludingExt,
   } = pathAndConfig;
+
+  let getname;
+
+  switch (variableNameCasing) {
+    case "Camel":
+      getname = makeCamelCaseName;
+      break;
+    case "Snake":
+      getname = makeSnakeCaseName;
+      break;
+    case "Kebab":
+      getname = makeKebabCaseName;
+      break;
+    case "Pascal":
+      getname = makePascalCaseName;
+      break;
+
+    default:
+      getname = makeSnakeWithUpperCaseName;
+      break;
+  }
 
   const pathName = path.resolve(process.cwd(), basePath);
   // ? 파일 목록 재귀로 가져옴
@@ -115,10 +146,7 @@ async function updateAssetsFile(pathAndConfig) {
     .flat(Infinity)
     .filter(Boolean)
     .map(({ name, ext, filePath, size }) => {
-      // TODO: 변수명을 카멜케이스, 스네이크, 케밥 중에 선택할 수 있게 하기
-      const constName = `${name.replace(/[^ㄱ-ㅎ|가-힣\w\s]/gim, "_")}${
-        isIncludingExt ? `_${ext.toUpperCase()}` : ""
-      }`;
+      const constName = getname(name, ext, filePath, size, isIncludingExt);
       return { constName, filePath, size };
     });
 

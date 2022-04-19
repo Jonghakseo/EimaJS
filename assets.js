@@ -1,1 +1,1 @@
-"use strict";var SAMPLE_PNG=require("../assets/sample.png"),난_PNG=require("../assets/\uB09C.png"),ASSETS={SAMPLE_PNG:SAMPLE_PNG,난_PNG:난_PNG};module.exports=ASSETS;
+"use strict";var sampleWhatPng=require("../assets/sampleWhat.png"),sampleWhatCopyPng=require("../assets/sampleWhat_copy.png"),난2xPng=require("../assets/\uB09C@2x.png"),ASSETS={sampleWhatPng:sampleWhatPng,sampleWhatCopyPng:sampleWhatCopyPng,난2xPng:난2xPng};module.exports=ASSETS;
