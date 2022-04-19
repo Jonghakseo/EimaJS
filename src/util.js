@@ -123,16 +123,6 @@ export async function getFilePathList(pathname, prefix) {
 }
 
 // 변수명 작명법에 따른 파일 이름을 만든다
-export function makeKebabCaseName(name, ext, filePath, size, isIncludingExt) {
-  const constName = `${[...name]
-    .map((l) => {
-      if (!pattern.test(l) && l.trim()) return l.toLowerCase();
-      if (pattern.test(l)) return "-";
-    })
-    .join("")}${isIncludingExt ? `-${ext}` : ""}`;
-
-  return constName;
-}
 export function makePascalCaseName(name, ext, filePath, size, isIncludingExt) {
   const nameArr = [...name];
   const constName = `${nameArr
@@ -147,16 +137,6 @@ export function makePascalCaseName(name, ext, filePath, size, isIncludingExt) {
 
   return constName;
 }
-// export function makeUpperCaseName(name, ext, filePath, size, isIncludingExt) {
-//   const constName = `${[...name]
-//     .map((l) => {
-//       if (!pattern.test(l) && l.trim()) return l.toUpperCase();
-//       if (pattern.test(l)) return "";
-//     })
-//     .join("")}${isIncludingExt ? `${ext.toUpperCase()}` : ""}`;
-
-//   return constName;
-// }
 export function makeCamelCaseName(name, ext, filePath, size, isIncludingExt) {
   const nameArr = [...name];
   const constName = `${nameArr

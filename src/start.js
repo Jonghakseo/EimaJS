@@ -125,9 +125,6 @@ async function updateAssetsFile(pathAndConfig) {
     case "Snake":
       getname = makeSnakeCaseName;
       break;
-    case "Kebab":
-      getname = makeKebabCaseName;
-      break;
     case "Pascal":
       getname = makePascalCaseName;
       break;

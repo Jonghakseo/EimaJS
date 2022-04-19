@@ -58,7 +58,7 @@ async function questionFileToExport(step) {
   return answers.questionFileToExport;
 }
 
-//
+// asset들을 모아놓은 오브젝트 변수명을 무엇으로 할지 입력 받음
 async function questionVariableName(step) {
   const answers = await inquirer.prompt({
     name: "questionVariableName",

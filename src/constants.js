@@ -9,7 +9,6 @@ export const TOTAL_STEP = 5;
 export const VARIABLE_CASING = [
   "Camel",
   "Snake",
-  "Kebab", //
   "Pascal", //
   "Upper with snake", //
 ];

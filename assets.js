@@ -1,1 +1,1 @@
-"use strict";var sampleWhatPng=require("../assets/sampleWhat.png"),sampleWhatCopyPng=require("../assets/sampleWhat_copy.png"),난2xPng=require("../assets/\uB09C@2x.png"),ASSETS={sampleWhatPng:sampleWhatPng,sampleWhatCopyPng:sampleWhatCopyPng,난2xPng:난2xPng};module.exports=ASSETS;
+"use strict";var SAMPLEWHAT_PNG=require("../assets/sampleWhat.png"),SAMPLEWHAT_COPY_PNG=require("../assets/sampleWhat_copy.png"),난_2X_PNG=require("../assets/\uB09C@2x.png"),ASSETS={SAMPLEWHAT_PNG:SAMPLEWHAT_PNG,SAMPLEWHAT_COPY_PNG:SAMPLEWHAT_COPY_PNG,난_2X_PNG:난_2X_PNG};module.exports=ASSETS;
