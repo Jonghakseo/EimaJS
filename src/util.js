@@ -5,7 +5,6 @@ import readline from "readline";
 import { EIMA, EIMA_ASSET_EXPORT_FILE } from "./constants";
 import { help } from "./ink";
 import { ESLint } from "eslint";
-import { async } from "@babel/runtime/regenerator";
 
 const pattern = /[^ㄱ-ㅎ|가-힣\w\s]/;
 
