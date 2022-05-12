@@ -6,7 +6,7 @@
     "build": "babel src --out-dir . --presets minify --no-comments",
     "test:init": "node index.js init",
     "test:start": "node index.js start",
-    "watch": "nodemon --watch src --exec \"yarn build\""
+    "watch": "concurrently \"tsc -w\" nodemon --watch src --exec \"yarn build\""
   },
   "bin": {
     "eima": "bin/index.js"
@@ -58,6 +58,7 @@
     "@types/yargs": "^17.0.5",
     "babel-preset-minify": "^0.5.1",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
+    "concurrently": "^7.1.0",
     "nodemon": "^2.0.7"
   },
   "license": "MIT",

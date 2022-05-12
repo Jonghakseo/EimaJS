@@ -6,6 +6,8 @@ import { EIMA, EIMA_ASSET_EXPORT_FILE } from "./constants";
 import { help } from "./ink";
 import { ESLint } from "eslint";
 
+const pattern = /[^ㄱ-ㅎ|가-힣\w\s]/;
+
 export function getLineInput(lineCb) {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -44,7 +46,8 @@ export async function getFileList(pathname, prefix) {
       // ? 파일인 경우
       if (fileStat.isFile()) {
         // ? 상수명 (.) dot split
-        let CONSTANTS_NAME = name.toUpperCase().split(".")[0];
+        let CONSTANTS_NAME = name.split(".")[0];
+        // let CONSTANTS_NAME = name.toUpperCase().split(".")[0];
         // ? 숫자로 시작하는 파일명 캇트
         if (CONSTANTS_NAME.substr(0, 1).match(new RegExp("^[0-9]"))) {
           throw new Error(
@@ -68,9 +71,8 @@ export async function getFileList(pathname, prefix) {
         // ? prefix(depth)가 없으면 파일명이 곧 경로
         if (prefix.length > 0) {
           // ? 그렇지 않으면 경로를 포함해서 상수명 및 경로 수정
-          CONSTANTS_NAME = `${prefix
-            .join("_")
-            .toUpperCase()}_${CONSTANTS_NAME}`;
+          CONSTANTS_NAME = `${prefix.join("_")}_${CONSTANTS_NAME}`;
+          // .toUpperCase()}_${CONSTANTS_NAME}`;
           filePath = `${prefix.join("/")}/${name}`;
         }
         // ? resolve 처리
@@ -117,6 +119,64 @@ export async function getFilePathList(pathname, prefix) {
       }
     })
   );
+}
+
+// 변수명 작명법에 따른 파일 이름을 만든다
+export function makePascalCaseName(name, ext, filePath, size, isIncludingExt) {
+  const nameArr = [...name];
+  const constName = `${nameArr
+    .map((l, idx) => {
+      if (idx === 0) return l.toUpperCase();
+      if (!pattern.test(l) && l.trim()) return l;
+      if (pattern.test(nameArr[idx - 1])) return l.toUpperCase();
+    })
+    .join("")}${
+    isIncludingExt ? `${ext[0].toUpperCase()}${[...ext].slice(1).join("")}` : ""
+  }`;
+
+  return constName;
+}
+export function makeCamelCaseName(name, ext, filePath, size, isIncludingExt) {
+  const nameArr = [...name];
+  const constName = `${nameArr
+    .map((l, idx) => {
+      if (idx === 0) return l.toLowerCase();
+      if (nameArr[idx - 1] === "_" || nameArr[idx - 1] === "-")
+        return l.toUpperCase();
+      if (!pattern.test(l) && l.trim() && l !== "_" && l !== "-") return l;
+      if (pattern.test(l)) return "";
+    })
+    .join("")}${
+    isIncludingExt ? `${ext[0].toUpperCase()}${[...ext].slice(1).join("")}` : ""
+  }`;
+
+  return constName;
+}
+export function makeSnakeCaseName(name, ext, filePath, size, isIncludingExt) {
+  const constName = `${[...name]
+    .map((l) => {
+      if (!pattern.test(l) && l.trim()) return l.toLowerCase();
+      if (pattern.test(l)) return "_";
+    })
+    .join("")}${isIncludingExt ? `_${ext}` : ""}`;
+
+  return constName;
+}
+export function makeSnakeWithUpperCaseName(
+  name,
+  ext,
+  filePath,
+  size,
+  isIncludingExt
+) {
+  const constName = `${[...name]
+    .map((l) => {
+      if (!pattern.test(l) && l.trim()) return l.toUpperCase();
+      if (pattern.test(l)) return "_";
+    })
+    .join("")}${isIncludingExt ? `_${ext.toUpperCase()}` : ""}`;
+
+  return constName;
 }
 
 // aima.json 파일을 만든다.

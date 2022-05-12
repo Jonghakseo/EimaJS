@@ -1,1 +1,1 @@
-"use strict";var SAMPLE_PNG=require("../assets/sample.png"),난_PNG=require("../assets/\uB09C.png"),ASSETS={SAMPLE_PNG:SAMPLE_PNG,난_PNG:난_PNG};module.exports=ASSETS;
+"use strict";var SAMPLEWHAT_PNG=require("../assets/sampleWhat.png"),SAMPLEWHAT_COPY_PNG=require("../assets/sampleWhat_copy.png"),난_2X_PNG=require("../assets/\uB09C@2x.png"),ASSETS={SAMPLEWHAT_PNG:SAMPLEWHAT_PNG,SAMPLEWHAT_COPY_PNG:SAMPLEWHAT_COPY_PNG,난_2X_PNG:난_2X_PNG};module.exports=ASSETS;
