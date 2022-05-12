@@ -1502,6 +1502,11 @@ bl@^4.1.0:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
+box-console@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/box-console/-/box-console-2.0.0.tgz#c45171af1185659e25afa33bf732a759e2221072"
+  integrity sha512-x9N9mOxVFXX2dR6VV2nxJO8roLvVTWrGK5P9nfGjEIXL2bvAy758AolIIws+uBg5jHTmU3KgQgvMr3EGrSbPsg==
+
 boxen@^5.0.0:
   version "5.1.2"
   resolved "https://registry.npmjs.org/boxen/-/boxen-5.1.2.tgz"

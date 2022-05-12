@@ -1,12 +1,23 @@
-import path from "path";
-import fs from "fs";
-import util from "util";
-import readline from "readline";
+import * as path from "path";
+import * as fs from "fs";
+import * as util from "util";
+import * as readline from "readline";
+import * as chalk from "chalk";
+import boxConsole from "box-console";
+
 import { EIMA, EIMA_ASSET_EXPORT_FILE } from "./constants";
-import { help } from "./ink";
 import { ESLint } from "eslint";
 
 const pattern = /[^ㄱ-ㅎ|가-힣\w\s]/;
+
+export const sleep = (ms: number = 900) =>
+  new Promise((r) => setTimeout(r, ms));
+export const log = console.log;
+// export const log = (m: string) => log(chalk.blue(m));
+export const msg = (m: string) => log(chalk.greenBright(m));
+export const err = (m: string) => log(chalk.red(m));
+export const help = (m: string) => log(chalk.yellow(m));
+export const box = (msgs: string[]) => boxConsole(msgs);
 
 export function getLineInput(lineCb) {
   const rl = readline.createInterface({
@@ -14,7 +25,7 @@ export function getLineInput(lineCb) {
     output: process.stdout,
     terminal: false,
   });
-  rl.on("line", function (line) {
+  rl.on("line", function (line: string) {
     rl.close();
     lineCb(line);
   });
@@ -24,15 +35,17 @@ export function getLineInput(lineCb) {
 const readdir = util.promisify(fs.readdir);
 
 // ? file List를 파싱합니다.
-export async function getFileList(pathname, prefix) {
-  const targetPath = prefix ? `${pathname}/${prefix.join("/")}` : pathname;
+export async function getFileList(pathname: string, prefix: string[]) {
+  const targetPath: string = prefix
+    ? `${pathname}/${prefix.join("/")}`
+    : pathname;
 
   // ? 찾으려는 폴더 경로의 전체 file Name 긁어옵니다.
-  const fileNames = await readdir(targetPath);
+  const fileNames: string[] = await readdir(targetPath);
   // ? 찾은 모든 파일에 대해 병렬적으로 프로세스 실행
   return Promise.all(
-    fileNames.map((name) => {
-      const fullFilePath = path.resolve(targetPath, name);
+    fileNames.map((name: string) => {
+      const fullFilePath: string = path.resolve(targetPath, name);
       const fileStat = fs.statSync(fullFilePath);
 
       // ? 숨김파일, 숨김폴더인 경우 탐색 제외
@@ -93,14 +106,14 @@ export async function getFileList(pathname, prefix) {
   );
 }
 
-export async function getFilePathList(pathname, prefix) {
+export async function getFilePathList(pathname: string, prefix: string[]) {
   const targetPath = prefix ? `${pathname}/${prefix.join("/")}` : pathname;
 
   const fileNames = await readdir(targetPath);
 
   return Promise.all(
-    fileNames.map((name) => {
-      const fullFilePath = path.resolve(targetPath, name);
+    fileNames.map((name: string) => {
+      const fullFilePath: string = path.resolve(targetPath, name);
       const fileStat = fs.statSync(fullFilePath);
       if (fileStat.isDirectory()) {
         return getFilePathList(pathname, [...prefix, name]);
@@ -122,7 +135,13 @@ export async function getFilePathList(pathname, prefix) {
 }
 
 // 변수명 작명법에 따른 파일 이름을 만든다
-export function makePascalCaseName(name, ext, filePath, size, isIncludingExt) {
+export function makePascalCaseName(
+  name: string,
+  ext: string,
+  isIncludingExt: boolean,
+  filePath?: string,
+  size?: number
+): string {
   const nameArr = [...name];
   const constName = `${nameArr
     .map((l, idx) => {
@@ -136,7 +155,13 @@ export function makePascalCaseName(name, ext, filePath, size, isIncludingExt) {
 
   return constName;
 }
-export function makeCamelCaseName(name, ext, filePath, size, isIncludingExt) {
+export function makeCamelCaseName(
+  name: string,
+  ext: string,
+  isIncludingExt: boolean,
+  filePath?: string,
+  size?: number
+): string {
   const nameArr = [...name];
   const constName = `${nameArr
     .map((l, idx) => {
@@ -152,7 +177,13 @@ export function makeCamelCaseName(name, ext, filePath, size, isIncludingExt) {
 
   return constName;
 }
-export function makeSnakeCaseName(name, ext, filePath, size, isIncludingExt) {
+export function makeSnakeCaseName(
+  name: string,
+  ext: string,
+  isIncludingExt: boolean,
+  filePath?: string,
+  size?: number
+): string {
   const constName = `${[...name]
     .map((l) => {
       if (!pattern.test(l) && l.trim()) return l.toLowerCase();
@@ -163,12 +194,12 @@ export function makeSnakeCaseName(name, ext, filePath, size, isIncludingExt) {
   return constName;
 }
 export function makeSnakeWithUpperCaseName(
-  name,
-  ext,
-  filePath,
-  size,
-  isIncludingExt
-) {
+  name: string,
+  ext: string,
+  isIncludingExt: boolean,
+  filePath?: string,
+  size?: number
+): string {
   const constName = `${[...name]
     .map((l) => {
       if (!pattern.test(l) && l.trim()) return l.toUpperCase();
@@ -207,7 +238,7 @@ export async function createConfigFile({
   fs.writeFileSync(savePath, JSON.stringify(configJson));
 }
 
-export async function fixEslint(outPath, ecmaVersion = 2015) {
+export async function fixEslint(outPath: string, ecmaVersion: number = 2015) {
   const eslint = new ESLint({
     fix: true,
     overrideConfig: {
@@ -220,24 +251,32 @@ export async function fixEslint(outPath, ecmaVersion = 2015) {
   await ESLint.outputFixes(result);
 }
 
-export function mergeAllSourceFile(path, files, cb) {
+export function mergeAllSourceFile(
+  path: string,
+  files: string[],
+  cb: Function
+) {
   let stream = "";
   let count = 0;
-  files.forEach((fileName) => {
-    fs.readFile(`${path}${fileName}`, "utf-8", (err, data) => {
-      if (err) {
-        throw err;
-      } else {
-        if (data.indexOf(EIMA_ASSET_EXPORT_FILE) === -1) {
-          // 에셋파일 -> 제외
-          stream += data;
-        }
-        count += 1;
-        if (count === files.length) {
-          cb(stream);
+  files.forEach((fileName: string) => {
+    fs.readFile(
+      `${path}${fileName}`,
+      "utf-8",
+      (err: NodeJS.ErrnoException, data: string) => {
+        if (err) {
+          throw err;
+        } else {
+          if (data.indexOf(EIMA_ASSET_EXPORT_FILE) === -1) {
+            // 에셋파일 -> 제외
+            stream += data;
+          }
+          count += 1;
+          if (count === files.length) {
+            cb(stream);
+          }
         }
       }
-    });
+    );
   });
 }
 
@@ -245,7 +284,7 @@ export function getConfig() {
   const configPath = path.resolve(process.cwd(), "eima.json");
   let config = null;
   try {
-    let configJson = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    const configJson = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
     if (!configJson.paths || configJson.paths.length === 0) {
       help("Please check paths property in eima.json");

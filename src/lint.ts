@@ -1,12 +1,15 @@
+import * as fs from "fs";
+
 import {
   getConfig,
   getFileList,
   getFilePathList,
   getLineInput,
   mergeAllSourceFile,
+  err,
+  msg,
+  box,
 } from "./util";
-import { box, err, msg } from "./ink";
-import fs from "fs";
 
 export async function eimaLint(path) {
   msg(
@@ -21,13 +24,13 @@ export async function eimaLint(path) {
   });
 }
 
-async function assetLint(path) {
+async function assetLint(pathParam: string) {
   const config = getConfig();
   if (!config || config.paths.length === 0) {
     err("Please Check eima.json");
     process.exit();
   }
-  if (!config.lintPath && !path) {
+  if (!config.lintPath && !pathParam) {
     err(
       "The Lint Feature Requires The Folder Path You Want To Search To. Please Check lintPath in eima.json or -p [path] argument"
     );
@@ -45,7 +48,7 @@ async function assetLint(path) {
       return { ...asset, name: constName };
     });
 
-    const path = `${path || config.lintPath}`;
+    const path = `${pathParam || config.lintPath}`;
     const fileLists = await getFilePathList(path, [""]);
     const filePaths = fileLists.filter(Boolean).flat(Infinity);
     mergeAllSourceFile(path, filePaths, (stream) => {
@@ -69,7 +72,7 @@ async function assetLint(path) {
         })
         .filter(Boolean);
 
-      box(list);
+      box([list]);
 
       // msg("사용하지 않는 파일들을 지우길 원하시나요? (Y/N)");
       err("DO YOU WANT TO DELETE UNUSED FILES? (Y/N) [N]");

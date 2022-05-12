@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+
+import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -15,7 +18,7 @@ import {
   EIMA_ASSET_EXPORT_FILE,
   ES_VERSION,
 } from "./constants";
-import { err, help, log } from "./ink";
+import { help, err, log } from "./util.js";
 
 export function eimaStart() {
   const configJson = getConfig();
