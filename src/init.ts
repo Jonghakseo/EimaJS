@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import inquirer from "inquirer";
-import gradient from "gradient-string";
-import chalkAnimation from "chalk-animation";
-import figlet from "figlet";
+import * as inquirer from "inquirer";
+import * as gradient from "gradient-string";
+import * as chalkAnimation from "chalk-animation";
+import * as figlet from "figlet";
 import { createSpinner } from "nanospinner";
 import { createConfigFile } from "./util";
 import { ES_VERSION, TOTAL_STEP, VARIABLE_CASING } from "./constants";
@@ -143,7 +143,7 @@ export async function eimaInit() {
   const checkAnswers = await questionCheckAnswers(options);
   if (checkAnswers.toLowerCase() !== "y") {
     const spinner = createSpinner("").start();
-    spinner.error({ text: `💀💀💀 Setup has been stoped.` });
+    spinner.error({ text: `Setup has been stoped. 💀` });
     process.exit(1);
   } else {
     isDone = true;
@@ -156,11 +156,11 @@ export async function eimaInit() {
   try {
     await createConfigFile(options);
     console.clear();
-    const rainbowTitle = chalkAnimation.rainbow("Setup has been completed.");
+    const rainbowTitle = chalkAnimation.rainbow("Setup has been completed! ✅");
     await sleep();
     rainbowTitle.stop();
     const spinner = createSpinner("").start();
-    spinner.success({ text: `Starting EIMA` });
+    spinner.success({ text: `Starting EIMA 🚀` });
   } catch (e) {
     console.error(e);
   }

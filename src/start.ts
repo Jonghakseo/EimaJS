@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import * as chalk from "chalk";
+// import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
+import { createSpinner } from "nanospinner";
 
 import {
   fixEslint,
@@ -12,6 +13,7 @@ import {
   makeSnakeCaseName,
   makeSnakeWithUpperCaseName,
   makeCamelCaseName,
+  getCasingType,
 } from "./util";
 import {
   DEFAULT_CONFIG,
@@ -119,34 +121,23 @@ async function updateAssetsFile(pathAndConfig) {
     isIncludingExt,
   } = pathAndConfig;
 
-  let getname;
-
-  switch (variableNameCasing) {
-    case "Camel":
-      getname = makeCamelCaseName;
-      break;
-    case "Snake":
-      getname = makeSnakeCaseName;
-      break;
-    case "Pascal":
-      getname = makePascalCaseName;
-      break;
-
-    default:
-      getname = makeSnakeWithUpperCaseName;
-      break;
-  }
-
+  const returnNewName = getCasingType(variableNameCasing);
   const pathName = path.resolve(process.cwd(), basePath);
   // ? 파일 목록 재귀로 가져옴
-  log("GETTING LIST OF FILES...");
+  // const spinner = createSpinner("GETTING LIST OF FILES...").start();
 
   const fileList = await getFileList(pathName, []);
   const assetFileInfo = fileList
     .flat(Infinity)
     .filter(Boolean)
     .map(({ name, ext, filePath, size }) => {
-      const constName = getname(name, ext, filePath, size, isIncludingExt);
+      const constName = returnNewName(
+        name,
+        ext,
+        filePath,
+        size,
+        isIncludingExt
+      );
       return { constName, filePath, size };
     });
 
@@ -165,17 +156,21 @@ async function updateAssetsFile(pathAndConfig) {
     variableName,
   };
   let assetsTsText = makeAssetFileText(material);
+  // spinner.success({ text: `COMPLETED ✅` });
 
-  log("CREATING ASSET IMPORT FILE...");
+  // const spinnerPath = createSpinner("CREATING ASSET IMPORT FILE...").start();
   log(outPath);
   const savePath = path.resolve(process.cwd(), `${outPath}`);
   fs.writeFileSync(savePath, assetsTsText);
+  // spinnerPath.success({ text: `COMPLETED ✅` });
 
-  log("RUNNING ESLINT...");
+  // const spinnerRun = createSpinner("RUNNING ESLINT...").start();
   let ecmaVersion = target === ES_VERSION.ES5 ? 3 : 2015;
   await fixEslint(outPath, ecmaVersion);
 
-  log(`${basePath} - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED.`);
+  // spinnerRun.success({
+  //   text: `${basePath} - ASSETFILE HAS BEEN SUCCESSFULLY UPDATED. ✅`,
+  // });
 }
 
 async function assetsToImportFile(path, config) {

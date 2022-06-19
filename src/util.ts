@@ -49,87 +49,80 @@ export async function getFileList(pathname: string, prefix: string[]) {
       const fileStat = fs.statSync(fullFilePath);
 
       // ? 숨김파일, 숨김폴더인 경우 탐색 제외
-      if (name.length > 0 && name.charAt(0) === ".") {
-        return null;
-      }
+      if (name.length > 0 && name.charAt(0) === ".") return null;
+
       // ? 폴더인 경우 재귀 탐색
-      if (fileStat.isDirectory()) {
+      if (fileStat.isDirectory())
         return getFileList(pathname, [...prefix, name]);
+
+      // ? 파일인 경우만 아래 로직 진행
+      if (!fileStat.isFile()) return null;
+
+      // ? 상수명 (.) dot split
+      let CONSTANTS_NAME = name.split(".")[0];
+      // let CONSTANTS_NAME = name.toUpperCase().split(".")[0];
+      // ? 숫자로 시작하는 파일명 캇트
+      if (CONSTANTS_NAME.substr(0, 1).match(new RegExp("^[0-9]"))) {
+        throw new Error(
+          `[${EIMA}] A NUMBER CANNOT BE AT THE BEGINNING OF THE FILE NAME.`
+        );
       }
-      // ? 파일인 경우
-      if (fileStat.isFile()) {
-        // ? 상수명 (.) dot split
-        let CONSTANTS_NAME = name.split(".")[0];
-        // let CONSTANTS_NAME = name.toUpperCase().split(".")[0];
-        // ? 숫자로 시작하는 파일명 캇트
-        if (CONSTANTS_NAME.substr(0, 1).match(new RegExp("^[0-9]"))) {
-          throw new Error(
-            `[${EIMA}] A NUMBER CANNOT BE AT THE BEGINNING OF THE FILE NAME.`
-          );
-        }
-        // ? 확장자
-        const ext = path.extname(name).slice(1);
-        // ? 용량 kb
-        let unit = "kb";
-        const rawSize = fileStat.size;
-        let size = Math.round(rawSize / 1024);
-        if (size > 1024) {
-          size = Math.round(size / 102.4) / 10;
-          unit = "mb";
-        }
+      // ? 확장자
+      const ext = path.extname(name).slice(1);
+      // ? 용량 kb
+      let unit = "kb";
+      const rawSize = fileStat.size;
+      let size = Math.round(rawSize / 1024);
+      if (size > 1024) {
+        size = Math.round(size / 102.4) / 10;
+        unit = "mb";
+      }
 
-        // ? 상수명 선언
-        let filePath = name;
+      // ? 상수명 선언
+      let filePath = name;
 
-        // ? prefix(depth)가 없으면 파일명이 곧 경로
-        if (prefix.length > 0) {
-          // ? 그렇지 않으면 경로를 포함해서 상수명 및 경로 수정
-          CONSTANTS_NAME = `${prefix.join("_")}_${CONSTANTS_NAME}`;
-          // .toUpperCase()}_${CONSTANTS_NAME}`;
-          filePath = `${prefix.join("/")}/${name}`;
-        }
-        // ? resolve 처리
-        return new Promise(function (resolve) {
-          resolve({
-            name: CONSTANTS_NAME,
-            ext,
-            filePath,
-            size: `${size}${unit}`,
-            _fullFilePath: fullFilePath,
-            _rawSize: rawSize,
-          });
+      // ? prefix(depth)가 없으면 파일명이 곧 경로
+      if (prefix.length > 0) {
+        // ? 그렇지 않으면 경로를 포함해서 상수명 및 경로 수정
+        CONSTANTS_NAME = `${prefix.join("_")}_${CONSTANTS_NAME}`;
+        // .toUpperCase()}_${CONSTANTS_NAME}`;
+        filePath = `${prefix.join("/")}/${name}`;
+      }
+      // ? resolve 처리
+      return new Promise(function (resolve) {
+        resolve({
+          name: CONSTANTS_NAME,
+          ext,
+          filePath,
+          size: `${size}${unit}`,
+          _fullFilePath: fullFilePath,
+          _rawSize: rawSize,
         });
-      } else {
-        return null;
-      }
+      });
     })
   );
 }
 
 export async function getFilePathList(pathname: string, prefix: string[]) {
   const targetPath = prefix ? `${pathname}/${prefix.join("/")}` : pathname;
-
   const fileNames = await readdir(targetPath);
 
   return Promise.all(
     fileNames.map((name: string) => {
       const fullFilePath: string = path.resolve(targetPath, name);
       const fileStat = fs.statSync(fullFilePath);
-      if (fileStat.isDirectory()) {
-        return getFilePathList(pathname, [...prefix, name]);
-      }
-      if (fileStat.isFile()) {
-        let filePath = name;
 
-        if (prefix.length > 0) {
-          filePath = `${prefix.join("/")}/${name}`;
-        }
-        return new Promise(function (resolve) {
-          resolve(filePath);
-        });
-      } else {
-        return null;
-      }
+      if (fileStat.isDirectory())
+        return getFilePathList(pathname, [...prefix, name]);
+
+      if (!fileStat.isFile()) return null;
+      let filePath = name;
+
+      if (prefix.length > 0) filePath = `${prefix.join("/")}/${name}`;
+
+      return new Promise(function (resolve) {
+        resolve(filePath);
+      });
     })
   );
 }
@@ -280,7 +273,7 @@ export function mergeAllSourceFile(
   });
 }
 
-export function getConfig() {
+export function getConfig(): ConfigType {
   const configPath = path.resolve(process.cwd(), "eima.json");
   let config = null;
   try {
@@ -297,3 +290,24 @@ export function getConfig() {
   }
   return config;
 }
+
+export const getCasingType = (variableNameCasing) => {
+  let getName;
+  switch (variableNameCasing) {
+    case "Camel":
+      getName = makeCamelCaseName;
+      break;
+    case "Snake":
+      getName = makeSnakeCaseName;
+      break;
+    case "Pascal":
+      getName = makePascalCaseName;
+      break;
+
+    default:
+      getName = makeSnakeWithUpperCaseName;
+      break;
+  }
+
+  return getName;
+};

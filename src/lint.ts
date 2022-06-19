@@ -1,27 +1,32 @@
 import * as fs from "fs";
+import inquirer from "inquirer";
+import { createSpinner } from "nanospinner";
 
 import {
   getConfig,
   getFileList,
   getFilePathList,
-  getLineInput,
   mergeAllSourceFile,
   err,
   msg,
   box,
+  getCasingType,
 } from "./util";
 
 export async function eimaLint(path) {
-  msg(
-    "The Lint Feature Is Experimental And The Results May Not Be Accurate. Do You Still Want To Run It? (Y/N) [N]"
-  );
-  getLineInput((line) => {
-    if (line === "Y" || line === "y") {
-      assetLint(path);
-    } else {
-      process.exit();
-    }
+  const answer = await inquirer.prompt({
+    name: "experimental",
+    type: "list",
+    message:
+      "The Lint Feature Is Experimental And The Results May Not Be Accurate. Do You Still Want To Run It? (Y/N) [N]",
+    choices: ["Y", "N"],
+    default() {
+      return "Y";
+    },
   });
+
+  if (answer.experimental === "Y") assetLint(path);
+  else process.exit();
 }
 
 async function assetLint(pathParam: string) {
@@ -43,15 +48,22 @@ async function assetLint(pathParam: string) {
 
     const importNames = fileListPromise.flat(Infinity).map((asset) => {
       const { name, ext } = asset;
+      console.log({ asset });
+
+      const returnNewName = getCasingType(config.variableNameCasing);
+
       const constName =
+        // TODO: 선택한 케이스로 바꿔줘야 함
         name.replace(/[^\w\s]/gim, "_") + "_" + ext.toUpperCase();
+      //  getname(name, ext, config.asstes, size, config.isIncludingExt);
+
       return { ...asset, name: constName };
     });
 
     const path = `${pathParam || config.lintPath}`;
     const fileLists = await getFilePathList(path, [""]);
     const filePaths = fileLists.filter(Boolean).flat(Infinity);
-    mergeAllSourceFile(path, filePaths, (stream) => {
+    mergeAllSourceFile(path, filePaths, async (stream) => {
       let list = "EIMA ASSET LINT(ALPHA)\n\n--LIST OF NON IN-USE ASSETS--\n\n";
       const unUsed = importNames
         .map((asset) => {
@@ -74,22 +86,28 @@ async function assetLint(pathParam: string) {
 
       box([list]);
 
-      // msg("사용하지 않는 파일들을 지우길 원하시나요? (Y/N)");
-      err("DO YOU WANT TO DELETE UNUSED FILES? (Y/N) [N]");
+      const answer = await inquirer.prompt({
+        name: "delete",
+        type: "list",
+        message: "DO YOU WANT TO DELETE UNUSED FILES? 🗑️",
+        choices: ["Y", "N"],
+        default() {
+          return "N";
+        },
+      });
+
       const deletedFiles = unUsed.reduce(
         (names, { _fullFilePath }) => names.concat(_fullFilePath),
         []
       );
       box(deletedFiles.join("\n"));
-      getLineInput((line) => {
-        if (line.toUpperCase() === "Y") {
-          unUsed.forEach(({ _fullFilePath }) => fs.unlinkSync(_fullFilePath));
-          msg("FILES DELETE COMPLETE");
-          process.exit();
-        } else {
-          process.exit();
-        }
-      });
+
+      if (answer.delete === "Y") {
+        const spinner = createSpinner("").start();
+        unUsed.forEach(({ _fullFilePath }) => fs.unlinkSync(_fullFilePath));
+        spinner.success({ text: `UNUSED FILES DELETED ✅` });
+      }
+      process.exit();
     });
   } catch (e) {
     console.error(e);
